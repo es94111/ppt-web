@@ -56,6 +56,7 @@ Next.js 15（App Router）/ TypeScript / PostgreSQL / Prisma / Auth.js / Tailwin
 
 | 版本 | 日期 | 說明 |
 |------|------|------|
+| 1.3.0 | 2026-06-20 | 上傳更新既有簡報：工作區卡片「更新」動作；Markdown 重用 `PUT /api/decks/:id/markdown`，PPTX 新增 `POST /api/decks/:id/import/pptx`（重新轉檔取代頁面、`getEditableDeck` 把關、型別需相符、`PROCESSING→READY/FAILED`）。 |
 | 1.2.1 | 2026-06-20 | 修正簡報卡片封面：`/dashboard` 與 `/explore` 卡片改以第一張投影片渲染為封面（查詢 `slides take:1`、`SlideView` 填滿 `.deck-cover`、`pointer-events:none`），取代固定圖示。 |
 | 1.2.0 | 2026-06-20 | 簡報主題系統：`s-*` 白名單版面類別（DOMPurify 保留 `class`、仍移除 `<style>`/inline CSS/JS，零 XSS）+ 播放器進場動畫（`SlideView` animate、`key={index}` 重觸發、stagger、reduced-motion）；旗艦範例改寫為 SlideForge 原生；開發文件 §6.9。 |
 | 1.1.1 | 2026-06-20 | UI 全面重新設計（Editorial SaaS 設計系統：語意化 CSS token、`next/font` 載入 Plus Jakarta Sans + Inter、模組化字級、三階陰影/圓角 scale）；a11y（focus-visible 焦點環、`prefers-reduced-motion`）；Markdown 外部連結 `target=_blank` + `rel=noopener`；開發文件 §10 補上美感/配色邏輯與設計系統。 |

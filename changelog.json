@@ -1,6 +1,15 @@
 {
-  "currentVersion": "1.2.1",
+  "currentVersion": "1.3.0",
   "releases": [
+    {
+      "version": "1.3.0",
+      "date": "2026-06-20",
+      "title": "可上傳檔案直接更新既有簡報",
+      "type": "new",
+      "changes": [
+        { "tag": "new", "text": "工作區每份簡報新增「更新」按鈕：可上傳新檔案直接覆蓋既有簡報內容，不必刪掉重建——Markdown 簡報上傳 .md 檔、PowerPoint 簡報上傳 .pptx 重新轉換。僅簡報的擁有者或管理員可更新。" }
+      ]
+    },
     {
       "version": "1.2.1",
       "date": "2026-06-20",
