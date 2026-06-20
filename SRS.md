@@ -56,6 +56,7 @@ Next.js 15（App Router）/ TypeScript / PostgreSQL / Prisma / Auth.js / Tailwin
 
 | 版本 | 日期 | 說明 |
 |------|------|------|
+| 1.1.1 | 2026-06-20 | UI 全面重新設計（Editorial SaaS 設計系統：語意化 CSS token、`next/font` 載入 Plus Jakarta Sans + Inter、模組化字級、三階陰影/圓角 scale）；a11y（focus-visible 焦點環、`prefers-reduced-motion`）；Markdown 外部連結 `target=_blank` + `rel=noopener`；開發文件 §10 補上美感/配色邏輯與設計系統。 |
 | 1.1.0 | 2026-06-20 | 編輯模式改為 Markdown（`---` 分頁、即時預覽、`slideContentSchema` 改 markdown/image 判別式聯集）；移除畫布元素編輯器；新增上傳匯入（`/api/decks/import/markdown`、`/import/pptx` 經 LibreOffice 轉圖）與 `sourceType`/`status` 欄位；新增公開藝廊 `/explore` 與 `GET /api/decks/public`；放寬守衛允許匿名瀏覽 `PUBLIC`/`UNLISTED`（ViewLog `userId` 可為 null）。 |
 | 1.0.1 | 2026-06-20 | 部署強化：Auth.js `trustHost`/`AUTH_URL` 修正反向代理／自訂網域登入；容器啟動自動執行 `prisma migrate deploy`（新增 initial migration 與 `db:deploy`）；CI 雙推 Docker Hub + GHCR、升級 Node 24 runtime；README 補完整。 |
 | 1.0.0 | 2026-06-20 | 首次發布：線上投影片建立/編輯/瀏覽、三種角色權限、簡報密碼保護、瀏覽與 IP 稽核、Email+Google 登入、Docker 部署。 |

@@ -1,8 +1,8 @@
 .md-editor{height:calc(100vh - 68px);display:flex;flex-direction:column;background:#ececf2}
 .md-toolbar{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 16px}
-.md-title{font-size:15px;letter-spacing:-.02em;max-width:30vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.md-title{font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:-.02em;max-width:30vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .md-hint{color:var(--muted);font-size:13px}
-.md-hint code{background:#edecf3;padding:1px 6px;border-radius:5px}
+.md-hint code{background:var(--brand-soft);color:var(--brand-ink);padding:1px 6px;border-radius:5px;font-family:var(--font-mono)}
 .md-toolbar .save-state{margin-left:auto;color:var(--muted);font-size:13px;margin-right:4px}
 .md-body{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:0}
 .md-source{border-right:1px solid var(--line);background:#fff;min-width:0;display:flex}
