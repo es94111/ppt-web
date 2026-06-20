@@ -1,6 +1,17 @@
 {
-  "currentVersion": "1.0.0",
+  "currentVersion": "1.0.1",
   "releases": [
+    {
+      "version": "1.0.1",
+      "date": "2026-06-20",
+      "title": "修正正式環境登入問題並簡化部署流程",
+      "type": "fixed",
+      "changes": [
+        { "tag": "fixed", "text": "修正將網站部署到正式環境（位於反向代理或自訂網域後）時可能無法登入的問題，部署後的網站現在可正常登入與使用。" },
+        { "tag": "improved", "text": "部署時資料庫結構會在服務啟動時自動更新，不再需要手動執行更新步驟，降低部署出錯的機會。" },
+        { "tag": "improved", "text": "官方 Docker 映像檔現在同時發布於 Docker Hub 與 GitHub Container Registry，方便自行架設者取得與部署。" }
+      ]
+    },
     {
       "version": "1.0.0",
       "date": "2026-06-20",

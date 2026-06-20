@@ -56,4 +56,5 @@ Next.js 15（App Router）/ TypeScript / PostgreSQL / Prisma / Auth.js / Tailwin
 
 | 版本 | 日期 | 說明 |
 |------|------|------|
+| 1.0.1 | 2026-06-20 | 部署強化：Auth.js `trustHost`/`AUTH_URL` 修正反向代理／自訂網域登入；容器啟動自動執行 `prisma migrate deploy`（新增 initial migration 與 `db:deploy`）；CI 雙推 Docker Hub + GHCR、升級 Node 24 runtime；README 補完整。 |
 | 1.0.0 | 2026-06-20 | 首次發布：線上投影片建立/編輯/瀏覽、三種角色權限、簡報密碼保護、瀏覽與 IP 稽核、Email+Google 登入、Docker 部署。 |

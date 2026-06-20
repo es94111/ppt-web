@@ -25,6 +25,7 @@ const providers = [
 if (process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET) providers.push(Google({ allowDangerousEmailAccountLinking: false }) as never);
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   adapter: PrismaAdapter(db),
   providers,
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 },
