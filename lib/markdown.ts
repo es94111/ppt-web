@@ -4,12 +4,26 @@ import DOMPurify from "dompurify";
 
 marked.setOptions({ gfm: true, breaks: true });
 
+// 外部連結在新分頁開啟並加上 noopener/noreferrer，防 tab-nabbing（UX/安全）
+let hookAdded = false;
+function ensureLinkHook() {
+  if (hookAdded) return;
+  DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+    if (node.tagName === "A" && node.getAttribute("href")) {
+      node.setAttribute("target", "_blank");
+      node.setAttribute("rel", "noopener noreferrer nofollow");
+    }
+  });
+  hookAdded = true;
+}
+
 /**
  * 將 Markdown 轉為「已消毒」的 HTML 字串。
  * 僅於瀏覽器執行（DOMPurify 需要 DOM）；伺服器端回傳空字串，待 client 端 hydrate 後再渲染。
  */
 export function renderMarkdown(markdown: string): string {
   if (typeof window === "undefined") return "";
+  ensureLinkHook();
   const rawHtml = marked.parse(markdown ?? "", { async: false }) as string;
   return DOMPurify.sanitize(rawHtml, {
     USE_PROFILES: { html: true },

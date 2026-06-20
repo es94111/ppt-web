@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { auth, signOut } from "@/auth";
 import { Presentation } from "lucide-react";
 import "./globals.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["500", "600", "700", "800"], variable: "--font-jakarta", display: "swap" });
 
 export const metadata: Metadata = { title: "SlideForge", description: "安全、現代的線上投影片平台" };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await auth();
-  return <html lang="zh-Hant"><body>
+  return <html lang="zh-Hant"><body className={`${inter.variable} ${jakarta.variable}`}>
     <header className="nav"><div className="container nav-inner">
       <Link className="logo" href="/"><span className="logo-mark"><Presentation size={20}/></span>SlideForge</Link>
       <nav className="nav-links">
