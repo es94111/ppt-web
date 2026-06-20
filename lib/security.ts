@@ -1,0 +1,6 @@
+import { createHmac,timingSafeEqual } from "node:crypto";
+
+export function extractClientIp(headers:Headers,trustedProxyCount=1){const forwarded=headers.get("x-forwarded-for")?.split(",").map(v=>v.trim()).filter(Boolean)??[];const trusted=Math.max(0,trustedProxyCount);return forwarded.length?(forwarded[Math.max(0,forwarded.length-trusted-1)]??forwarded[0]):headers.get("x-real-ip")??"unknown"}
+function signDeckAccess(deckId:string,expires:string){const secret=process.env.AUTH_SECRET;if(!secret)throw new Error("AUTH_SECRET is required");return createHmac("sha256",secret).update(`${deckId}:${expires}`).digest("base64url")}
+export function createDeckAccessToken(deckId:string,maxAgeSeconds=7200){const expires=String(Date.now()+maxAgeSeconds*1000);return `${expires}.${signDeckAccess(deckId,expires)}`}
+export function verifyDeckAccessToken(deckId:string,token?:string){if(!token)return false;const[expires,signature]=token.split(".");if(!expires||!signature||Number(expires)<Date.now())return false;const expected=signDeckAccess(deckId,expires);const actualBytes=Buffer.from(signature);const expectedBytes=Buffer.from(expected);return actualBytes.length===expectedBytes.length&&timingSafeEqual(actualBytes,expectedBytes)}

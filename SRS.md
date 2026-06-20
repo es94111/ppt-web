@@ -1,0 +1,59 @@
+# SlideForge — 軟體需求規格書（SRS）
+
+> 內部開發文件，可保留技術術語。完整設計請見 [`docs/開發文件.md`](docs/開發文件.md)。
+
+## 1. 目的與範圍
+
+SlideForge 是以 Next.js 全端建構的線上投影片平台，提供網頁原生的投影片建立、編輯、瀏覽，並具備角色權限、簡報密碼保護與完整的瀏覽稽核（含 IP 記錄）。
+
+## 2. 角色與權限
+
+| 角色 | 權限摘要 |
+|------|----------|
+| ADMIN | 全站使用者/簡報/稽核管理；首位註冊者自動取得 |
+| USER | 建立/編輯/刪除自己的簡報；查看自己簡報的稽核 |
+| GUEST | 唯讀瀏覽（依可見性/密碼） |
+
+新註冊預設 `GUEST`；權限於後端 API 強制驗證（前端隱藏僅為體驗）。
+
+## 3. 功能需求
+
+- **FR-AUTH**：Email+密碼 與 Google OAuth 登入；Auth.js（NextAuth v5）；密碼 bcrypt 雜湊；登入/密碼驗證速率限制。
+- **FR-ROLE**：Admin 後台調整角色與啟用狀態；至少保留一名 Admin。
+- **FR-DECK**：Deck CRUD + 可見性（PRIVATE/PASSWORD/PUBLIC/UNLISTED）+ 密碼設定。
+- **FR-SLIDE**：Slide CRUD、排序；content 為 JSON（text/image/shape 元素），寫入前 Zod 驗證。
+- **FR-EDITOR**：Admin/Owner 可進編輯器；自動存檔；圖片走 S3 相容 presigned upload。
+- **FR-VIEWER**：唯讀渲染、上一頁/下一頁、鍵盤、全螢幕、頁碼。
+- **FR-AUDIT**：ViewLog 記錄 user/deck/slideOrder/ip/ua/time；Admin 全站查詢、User 自助查詢。
+
+## 4. 非功能需求
+
+- **安全**：argon2/bcrypt 雜湊、後端授權、IDOR 防護、Zod 輸入驗證、輸出消毒（XSS）、Prisma 參數化（注入）、CSP/安全標頭、CSRF、檔案上傳白名單、可信代理 IP 解析。
+- **隱私**：IP/UA 屬個資，揭露用途與保存期限（預設 180 天），僅 Admin 可存取全站記錄。
+- **美觀/可用性**：Tailwind + shadcn/ui、響應式、深色模式、WCAG AA。
+- **可移植性**：Docker 容器化（standalone 輸出），可部署至任何支援 Docker 的平台。
+
+## 5. 技術棧
+
+Next.js 15（App Router）/ TypeScript / PostgreSQL / Prisma / Auth.js / Tailwind + shadcn/ui / S3 相容物件儲存 / Docker。
+
+## 6. 資料模型
+
+`User`、`Deck`、`Slide`、`ViewLog` 及 Auth.js 標準表（`Account`/`Session`）。詳見 `prisma/schema.prisma` 與設計文件 §5。
+
+## 7. 部署與 CI/CD
+
+- Docker / docker-compose（web + postgres + minio）。
+- 規劃 GitHub Actions：lint/test/gitleaks → build image → Trivy → push（Docker Hub/GHCR）。詳見設計文件 §13。
+
+## 8. 版本
+
+### 8.1 版號規則
+
+語意化版號 `MAJOR.MINOR.PATCH`。使用者導向的更新摘要見 [`changelog.json`](changelog.json)；公開撰寫規格見 [`.specify/memory/changelog-style.md`](.specify/memory/changelog-style.md)。
+
+### 8.2 版本歷程
+
+| 版本 | 日期 | 說明 |
+|------|------|------|
+| 1.0.0 | 2026-06-20 | 首次發布：線上投影片建立/編輯/瀏覽、三種角色權限、簡報密碼保護、瀏覽與 IP 稽核、Email+Google 登入、Docker 部署。 |

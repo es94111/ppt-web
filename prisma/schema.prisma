@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+  GUEST
+}
+
+enum Visibility {
+  PRIVATE
+  PASSWORD
+  PUBLIC
+  UNLISTED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  passwordHash  String?
+  role          Role      @default(GUEST)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  decks         Deck[]
+  viewLogs      ViewLog[]
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Deck {
+  id           String     @id @default(cuid())
+  title        String
+  description  String?
+  ownerId      String
+  owner        User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  visibility   Visibility @default(PRIVATE)
+  passwordHash String?
+  coverImage   String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  slides       Slide[]
+  viewLogs     ViewLog[]
+  @@index([ownerId])
+  @@index([visibility])
+}
+
+model Slide {
+  id        String   @id @default(cuid())
+  deckId    String
+  deck      Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  order     Int
+  content   Json
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([deckId, order])
+  @@index([deckId])
+}
+
+model ViewLog {
+  id         String   @id @default(cuid())
+  deckId     String
+  deck       Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  slideOrder Int?
+  ipAddress  String
+  userAgent  String?
+  referer    String?
+  viewedAt   DateTime @default(now())
+  @@index([deckId])
+  @@index([userId])
+  @@index([viewedAt])
+  @@index([ipAddress])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+  @@unique([identifier, token])
+}

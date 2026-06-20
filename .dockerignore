@@ -1,0 +1,35 @@
+# Dependencies (reinstalled in image)
+node_modules
+npm-debug.log*
+
+# Build output
+.next
+out
+build
+dist
+
+# Env / secrets — never bake into the image
+.env
+.env.*
+!.env.example
+
+# Version control & CI
+.git
+.github
+.gitignore
+
+# Local & editor
+.vscode
+.idea
+*.log
+.DS_Store
+Thumbs.db
+
+# Docs & meta
+docs
+README.md
+*.md
+
+# Tests & TS build cache
+tsconfig.tsbuildinfo
+coverage
