@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Presentation } from "lucide-react";
 import { db } from "@/lib/db";
+import { SlideView } from "@/components/SlideView";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
   const sort = sp.sort === "popular" ? "popular" : "recent";
   const decks = await db.deck.findMany({
     where: { visibility: "PUBLIC", status: "READY", ...(q ? { title: { contains: q, mode: "insensitive" } } : {}) },
-    select: { id: true, title: true, description: true, sourceType: true, owner: { select: { name: true } }, _count: { select: { slides: true, viewLogs: true } } },
+    select: { id: true, title: true, description: true, sourceType: true, owner: { select: { name: true } }, _count: { select: { slides: true, viewLogs: true } }, slides: { orderBy: { order: "asc" }, take: 1, select: { content: true } } },
     orderBy: sort === "popular" ? { viewLogs: { _count: "desc" } } : { updatedAt: "desc" },
     take: 60,
   });
@@ -33,7 +34,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
           <div className="grid">
             {decks.map((d) => (
               <article className="card deck-card" key={d.id}>
-                <Link href={`/d/${d.id}`}><div className="deck-cover"><Presentation size={48} /></div></Link>
+                <Link href={`/d/${d.id}`}><div className="deck-cover">{d.slides?.[0] ? <SlideView content={d.slides[0].content} /> : <Presentation size={48} />}</div></Link>
                 <div className="deck-body">
                   <div className="deck-meta"><span className="badge">{d.sourceType === "PPTX" ? "PPTX" : "Markdown"}</span><span>{d._count.slides} 頁 · {d._count.viewLogs} 次瀏覽</span></div>
                   <h3>{d.title}</h3>
