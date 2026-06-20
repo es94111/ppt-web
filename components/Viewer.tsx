@@ -24,7 +24,7 @@ export function Viewer({ deckId, title, slides }: { deckId: string; title: strin
       <header className="viewer-head"><h1>{title}</h1><span className="muted">唯讀模式</span></header>
       <button aria-label="上一頁" className="click-zone left" onClick={() => go(index - 1)} />
       <button aria-label="下一頁" className="click-zone right" onClick={() => go(index + 1)} />
-      <div className="viewer-stage"><div className="viewer-canvas"><SlideView content={slides[index].content} /></div></div>
+      <div className="viewer-stage"><div className="viewer-canvas"><SlideView key={index} content={slides[index].content} animate /></div></div>
       <footer className="viewer-controls">
         <button className="btn secondary small" disabled={index === 0} onClick={() => go(index - 1)}><ChevronLeft size={18} /></button>
         <strong>{index + 1} / {slides.length}</strong>
