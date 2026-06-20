@@ -6,15 +6,15 @@ import { deckUpdateSchema } from "@/lib/schemas";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const user = await requireUser();
-  if (!user) return jsonError("請先登入", 401);
-  const deck = await db.deck.findUnique({ where: { id }, include: { owner: { select: { name: true, email: true } }, slides: { orderBy: { order: "asc" } } } });
+  const user = await requireUser(); // 可為 null（匿名）
+  const deck = await db.deck.findUnique({ where: { id }, include: { owner: { select: { name: true } }, slides: { orderBy: { order: "asc" } } } });
   if (!deck) return jsonError("找不到簡報", 404);
-  const owns = user.role === "ADMIN" || deck.ownerId === user.id;
-  if (deck.visibility === "PRIVATE" && !owns) return jsonError("沒有權限", 403);
+  const owns = !!user && (user.role === "ADMIN" || deck.ownerId === user.id);
+  // PUBLIC / UNLISTED 允許匿名；PRIVATE 須擁有者/Admin；PASSWORD 須密碼或擁有者
+  if (deck.visibility === "PRIVATE" && !owns) return jsonError(user ? "沒有權限" : "請先登入", user ? 403 : 401);
   if (deck.visibility === "PASSWORD" && !owns && !hasDeckCookie(request, id)) return jsonError("需要簡報密碼", 403);
   const { passwordHash: _, ...safe } = deck;
-  return NextResponse.json({ ...safe, canEdit: owns && (["ADMIN", "USER"] as string[]).includes(user.role) });
+  return NextResponse.json({ ...safe, canEdit: owns && (["ADMIN", "USER"] as string[]).includes(user!.role) });
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

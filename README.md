@@ -1,6 +1,6 @@
 # SlideForge
 
-![version](https://img.shields.io/badge/version-1.0.1-blue)
+![version](https://img.shields.io/badge/version-1.1.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-15-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 
@@ -32,13 +32,16 @@
 ## 功能特色
 
 - **線上瀏覽**：逐頁播放簡報，支援上一頁／下一頁、鍵盤左右鍵、頁碼指示與全螢幕。
-- **網頁原生編輯**：在瀏覽器內建立／編輯投影片，加入文字、圖片、基本形狀並拖曳排版（投影片以 JSON 結構儲存，非上傳 `.pptx`）。
+- **Markdown 編輯**：在瀏覽器內用 Markdown 撰寫投影片，左側輸入、右側即時預覽，以單獨一行的 `---` 分頁。
+- **上傳匯入**：上傳 `.md` Markdown 檔匯入成可編輯簡報；上傳 `.pptx` 經 LibreOffice 轉成每頁圖片供唯讀瀏覽。
+- **公開藝廊**：`/explore` 可瀏覽全站公開簡報，支援關鍵字搜尋與最新／最熱門排序。
+- **匿名瀏覽**：公開簡報與公開藝廊**未登入即可觀看**；私人與密碼簡報仍需登入或密碼。
 - **三種角色**：管理員（Admin）、使用者（User）、訪客（Guest）。首位以 Email 註冊者自動成為 Admin。
 - **角色管理**：Admin 可在後台指派任意帳號為 User／Guest／Admin，並啟用或停用帳號。
 - **簡報密碼保護**：每份簡報可設定獨立瀏覽密碼，並支援私人／需密碼／公開／不公開列出等可見性。
-- **瀏覽稽核**：記錄誰、在何時、從哪個 IP 位址、瀏覽了哪份簡報的第幾頁。Admin 可查看全站、User 可查看自己簡報的記錄。
+- **瀏覽稽核**：記錄誰、在何時、從哪個 IP 位址、瀏覽了哪份簡報的第幾頁（匿名瀏覽記為訪客 + IP）。Admin 可查看全站、User 可查看自己簡報的記錄。
 - **雙重登入**：Email + 密碼，或 Google OAuth。
-- **資安內建**：密碼雜湊、後端強制授權、輸入驗證、輸出消毒、速率限制（詳見 [安全性](#安全性)）。
+- **資安內建**：密碼雜湊、後端強制授權、輸入驗證、Markdown 輸出消毒（DOMPurify）、速率限制（詳見 [安全性](#安全性)）。
 
 ## 技術棧
 

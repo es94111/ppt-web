@@ -20,6 +20,17 @@ enum Visibility {
   UNLISTED
 }
 
+enum SourceType {
+  MARKDOWN
+  PPTX
+}
+
+enum DeckStatus {
+  READY
+  PROCESSING
+  FAILED
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -44,6 +55,9 @@ model Deck {
   ownerId      String
   owner        User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   visibility   Visibility @default(PRIVATE)
+  sourceType   SourceType @default(MARKDOWN)
+  status       DeckStatus @default(READY)
+  sourceFile   String?
   passwordHash String?
   coverImage   String?
   createdAt    DateTime   @default(now())
