@@ -1,19 +1,20 @@
 import { z } from "zod";
 
-const color = z.string().regex(/^#[0-9a-fA-F]{3,8}$/);
-const position = z.number().finite().min(-2000).max(4000);
-const size = z.number().finite().min(1).max(4000);
-const base = { id: z.string().min(1).max(80), x: position, y: position, w: size, h: size };
-
-export const elementSchema = z.discriminatedUnion("type", [
-  z.object({ ...base, type: z.literal("text"), text: z.string().max(5000), fontSize: z.number().min(8).max(200), fontWeight: z.number().int().min(100).max(900).optional(), color, align: z.enum(["left", "center", "right"]).optional() }).strict(),
-  z.object({ ...base, type: z.literal("image"), src: z.string().url().max(2048), alt: z.string().max(300).optional() }).strict(),
-  z.object({ ...base, type: z.literal("shape"), shape: z.enum(["rect", "ellipse", "line"]), fill: color, radius: z.number().min(0).max(200).optional() }).strict()
+// 投影片內容：Markdown 原生（可編輯）或 圖片（PPTX 轉出，唯讀）
+export const slideContentSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("markdown"), markdown: z.string().max(20000) }).strict(),
+  z.object({ kind: z.literal("image"), src: z.string().min(1).max(2048), alt: z.string().max(300).optional() }).strict(),
 ]);
-
-export const slideContentSchema = z.object({ background: color.default("#ffffff"), elements: z.array(elementSchema).max(200) }).strict();
 export type SlideContent = z.infer<typeof slideContentSchema>;
-export type SlideElement = z.infer<typeof elementSchema>;
+
+// 整份 Deck 的 Markdown 文件（編輯器儲存用；以 --- 分頁）
+export const deckMarkdownSchema = z.object({ markdown: z.string().max(500000) }).strict();
+
+// Markdown 檔匯入（建立新 Deck）
+export const markdownImportSchema = z.object({
+  title: z.string().trim().min(1).max(150),
+  markdown: z.string().min(1).max(500000),
+});
 
 export const registerSchema = z.object({
   name: z.string().trim().min(1).max(80),

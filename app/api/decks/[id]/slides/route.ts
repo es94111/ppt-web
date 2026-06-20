@@ -9,6 +9,6 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
   const access = await getEditableDeck(id, user);
   if (access.error) return access.error;
   const last = await db.slide.aggregate({ where: { deckId: id }, _max: { order: true } });
-  const slide = await db.slide.create({ data: { deckId: id, order: (last._max.order ?? 0) + 1, content: { background: "#ffffff", elements: [] } } });
+  const slide = await db.slide.create({ data: { deckId: id, order: (last._max.order ?? 0) + 1, content: { kind: "markdown", markdown: "" } } });
   return NextResponse.json(slide, { status: 201 });
 }

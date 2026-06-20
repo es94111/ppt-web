@@ -1,20 +1,103 @@
 "use client";
-import { useEffect,useMemo,useRef,useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDown,ArrowUp,Circle,Image as ImageIcon,Plus,Square,Trash2,Type } from "lucide-react";
-import { SlideCanvas } from "./SlideCanvas";
-import type { SlideContent,SlideElement } from "@/lib/schemas";
+import { BarChart3, Play, Settings2, X } from "lucide-react";
+import { SlideView } from "./SlideView";
+import { splitMarkdownSlides, markdownToContent } from "@/lib/slides";
 
-type Slide={id:string;order:number;content:unknown};type Deck={id:string;title:string;description:string|null;visibility:string;slides:Slide[]};
-const uid=()=>Math.random().toString(36).slice(2,10);
-export function Editor({initial}:{initial:Deck}){const router=useRouter();const[deck,setDeck]=useState(initial);const[current,setCurrent]=useState(initial.slides[0].id);const[selected,setSelected]=useState<string|null>(null);const[state,setState]=useState("已儲存");const[uploading,setUploading]=useState(false);const timer=useRef<ReturnType<typeof setTimeout>|null>(null);const fileInput=useRef<HTMLInputElement|null>(null);const slide=deck.slides.find(s=>s.id===current)!;const content=slide.content as SlideContent;
- function updateContent(next:SlideContent){setDeck(d=>({...d,slides:d.slides.map(s=>s.id===current?{...s,content:next}:s)}));setState("等待儲存");if(timer.current)clearTimeout(timer.current);timer.current=setTimeout(async()=>{setState("儲存中…");const r=await fetch(`/api/decks/${deck.id}/slides/${current}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({content:next})});setState(r.ok?"已儲存":"儲存失敗")},700)}
- function updateEl(id:string,patch:Partial<SlideElement>){updateContent({...content,elements:content.elements.map(e=>e.id===id?({...e,...patch} as SlideElement):e)})}
- function add(type:"text"|"image"|"shape",shape?:"rect"|"ellipse"){let el:SlideElement;if(type==="text")el={id:uid(),type,x:90,y:90,w:450,h:100,text:"雙擊右側面板編輯文字",fontSize:40,fontWeight:700,color:"#181822",align:"left"};else if(type==="image"){const src=prompt("請輸入 HTTPS 圖片網址");if(!src)return;el={id:uid(),type,x:120,y:130,w:400,h:280,src,alt:""}}else el={id:uid(),type,shape:shape!,x:160,y:140,w:300,h:220,fill:"#6157e7",radius:shape==="rect"?16:undefined};updateContent({...content,elements:[...content.elements,el]});setSelected(el.id)}
- async function uploadImage(file:File){setUploading(true);try{const signed=await fetch("/api/uploads/image",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({deckId:deck.id,fileName:file.name,contentType:file.type,size:file.size})});if(!signed.ok){alert((await signed.json()).error);return}const {uploadUrl,publicUrl}=await signed.json();const put=await fetch(uploadUrl,{method:"PUT",headers:{"Content-Type":file.type},body:file});if(!put.ok)throw new Error("upload failed");const el:SlideElement={id:uid(),type:"image",x:120,y:130,w:400,h:280,src:publicUrl,alt:file.name};updateContent({...content,elements:[...content.elements,el]});setSelected(el.id)}catch{alert("圖片上傳失敗，請檢查物件儲存 CORS 與權限設定") }finally{setUploading(false);if(fileInput.current)fileInput.current.value=""}}
- async function addSlide(){const r=await fetch(`/api/decks/${deck.id}/slides`,{method:"POST"});if(r.ok){const s=await r.json();setDeck(d=>({...d,slides:[...d.slides,s]}));setCurrent(s.id);setSelected(null)}}
- async function deleteSlide(){if(!confirm("刪除此投影片？"))return;const r=await fetch(`/api/decks/${deck.id}/slides/${current}`,{method:"DELETE"});if(r.ok){const rest=deck.slides.filter(s=>s.id!==current).map((s,i)=>({...s,order:i+1}));setDeck(d=>({...d,slides:rest}));setCurrent(rest[0].id);setSelected(null)}}
- async function moveSlide(delta:number){const index=deck.slides.findIndex(s=>s.id===current);const target=index+delta;if(target<0||target>=deck.slides.length)return;const reordered=[...deck.slides];[reordered[index],reordered[target]]=[reordered[target],reordered[index]];const next=reordered.map((s,i)=>({...s,order:i+1}));setDeck(d=>({...d,slides:next}));const r=await fetch(`/api/decks/${deck.id}/slides/reorder`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({slideIds:next.map(s=>s.id)})});if(!r.ok){alert((await r.json()).error);router.refresh()}}
- async function saveSettings(form:FormData){const visibility=String(form.get("visibility"));const password=String(form.get("password")||"")||undefined;const r=await fetch(`/api/decks/${deck.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:form.get("title"),description:form.get("description"),visibility,password})});if(!r.ok)alert((await r.json()).error);else{setDeck(d=>({...d,title:String(form.get("title")),description:String(form.get("description")),visibility}));router.refresh()}}
- const el=useMemo(()=>content.elements.find(e=>e.id===selected),[content,selected]);
- return <div className="editor-shell"><aside className="editor-left"><button className="btn small" style={{width:"100%",marginBottom:14}} onClick={addSlide}><Plus size={15}/>新增頁面</button>{deck.slides.map(s=><button className={`thumb ${s.id===current?"active":""}`} key={s.id} onClick={()=>{setCurrent(s.id);setSelected(null)}}><span className="thumb-num">{s.order}</span><SlideCanvas content={s.content as SlideContent}/></button>)}</aside><section className="editor-main"><div className="editor-toolbar"><button className="btn secondary small" onClick={()=>add("text")}><Type size={16}/>文字</button><button className="btn secondary small" onClick={()=>fileInput.current?.click()} disabled={uploading}><ImageIcon size={16}/>{uploading?"上傳中":"上傳圖片"}</button><input ref={fileInput} type="file" hidden accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>e.target.files?.[0]&&uploadImage(e.target.files[0])}/><button className="btn secondary small" onClick={()=>add("image")}><ImageIcon size={16}/>圖片網址</button><button className="btn secondary small" onClick={()=>add("shape","rect")}><Square size={16}/>矩形</button><button className="btn secondary small" onClick={()=>add("shape","ellipse")}><Circle size={16}/>圓形</button><button className="btn secondary small" title="上移投影片" onClick={()=>moveSlide(-1)}><ArrowUp size={16}/></button><button className="btn secondary small" title="下移投影片" onClick={()=>moveSlide(1)}><ArrowDown size={16}/></button><button className="btn secondary small" onClick={deleteSlide}><Trash2 size={16}/></button><span className="save-state">{state}</span></div><div className="editor-stage"><div className="canvas-wrap"><SlideCanvas content={content} editable selectedId={selected} onSelect={id=>setSelected(id||null)} onMove={(id,x,y)=>updateEl(id,{x,y})}/></div></div></section><aside className="editor-right">{el?<><div className="prop-title">元素屬性</div><div className="prop-row">{(["x","y","w","h"] as const).map(key=><div className="field" key={key}><label>{key.toUpperCase()}</label><input className="input" type="number" value={el[key]} onChange={e=>updateEl(el.id,{[key]:Number(e.target.value)})}/></div>)}</div>{el.type==="text"&&<><div className="field"><label>文字</label><textarea className="input" value={el.text} onChange={e=>updateEl(el.id,{text:e.target.value})}/></div><div className="prop-row"><div className="field"><label>字級</label><input className="input" type="number" min="8" max="200" value={el.fontSize} onChange={e=>updateEl(el.id,{fontSize:Number(e.target.value)})}/></div><div className="field"><label>顏色</label><input className="input" type="color" value={el.color} onChange={e=>updateEl(el.id,{color:e.target.value})}/></div></div></>}{el.type==="image"&&<div className="field"><label>替代文字</label><input className="input" value={el.alt??""} onChange={e=>updateEl(el.id,{alt:e.target.value})}/></div>}{el.type==="shape"&&<div className="field"><label>填色</label><input className="input" type="color" value={el.fill} onChange={e=>updateEl(el.id,{fill:e.target.value})}/></div>}<button className="btn danger small" onClick={()=>{updateContent({...content,elements:content.elements.filter(e=>e.id!==el.id)});setSelected(null)}}>刪除元素</button></>:<><div className="prop-title">簡報設定</div><form action={saveSettings}><div className="field"><label>標題</label><input className="input" name="title" defaultValue={deck.title}/></div><div className="field"><label>描述</label><textarea className="input" name="description" defaultValue={deck.description??""}/></div><div className="field"><label>可見性</label><select className="input" name="visibility" defaultValue={deck.visibility}><option value="PRIVATE">私人</option><option value="PUBLIC">公開</option><option value="UNLISTED">不公開列表</option><option value="PASSWORD">密碼保護</option></select></div><div className="field"><label>新密碼（選填）</label><input className="input" name="password" type="password" minLength={6}/></div><div className="actions"><button className="btn small">儲存設定</button><a className="btn secondary small" href={`/decks/${deck.id}/logs`}>瀏覽分析</a></div></form><hr style={{border:0,borderTop:"1px solid var(--line)",margin:"22px 0"}}/><div className="field"><label>背景</label><input className="input" type="color" value={content.background} onChange={e=>updateContent({...content,background:e.target.value})}/></div><div className="prop-title">元素</div><div className="element-list">{content.elements.map(e=><button key={e.id} className={`element-item ${e.id===selected?"active":""}`} onClick={()=>setSelected(e.id)}>{e.type}{e.type==="text"?`: ${e.text.slice(0,18)}`:""}</button>)}</div></>}</aside></div>}
+type Deck = { id: string; title: string; description: string | null; visibility: string; initialMarkdown: string };
+
+export function Editor({ deck }: { deck: Deck }) {
+  const router = useRouter();
+  const [md, setMd] = useState(deck.initialMarkdown);
+  const [state, setState] = useState("已儲存");
+  const [showSettings, setShowSettings] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const slides = useMemo(() => splitMarkdownSlides(md), [md]);
+
+  function onChange(next: string) {
+    setMd(next);
+    setState("等待儲存");
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => save(next), 700);
+  }
+
+  async function save(value: string) {
+    setState("儲存中…");
+    const r = await fetch(`/api/decks/${deck.id}/markdown`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ markdown: value }),
+    });
+    setState(r.ok ? "已儲存" : "儲存失敗");
+  }
+
+  async function saveSettings(form: FormData) {
+    const visibility = String(form.get("visibility"));
+    const password = String(form.get("password") || "") || undefined;
+    const r = await fetch(`/api/decks/${deck.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: form.get("title"), description: form.get("description"), visibility, password }),
+    });
+    if (!r.ok) { alert((await r.json()).error); return; }
+    setShowSettings(false);
+    router.refresh();
+  }
+
+  return (
+    <div className="md-editor">
+      <header className="md-toolbar">
+        <strong className="md-title">{deck.title}</strong>
+        <span className="md-hint">用獨立一行的 <code>---</code> 分頁</span>
+        <span className="save-state">{state}</span>
+        <button className="btn secondary small" onClick={() => setShowSettings(true)}><Settings2 size={15} />設定</button>
+        <a className="btn secondary small" href={`/decks/${deck.id}/logs`}><BarChart3 size={15} />分析</a>
+        <a className="btn small" href={`/d/${deck.id}`}><Play size={15} />播放</a>
+      </header>
+
+      <div className="md-body">
+        <section className="md-source">
+          <textarea
+            className="md-textarea"
+            value={md}
+            spellCheck={false}
+            placeholder={"# 第一頁標題\n\n歡迎\n\n---\n\n## 第二頁\n\n- 重點一\n- 重點二"}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </section>
+        <section className="md-preview">
+          {slides.map((s, i) => (
+            <div className="md-preview-item" key={i}>
+              <span className="md-preview-num">{i + 1}</span>
+              <div className="md-preview-frame"><SlideView content={markdownToContent(s)} /></div>
+            </div>
+          ))}
+        </section>
+      </div>
+
+      {showSettings && (
+        <div className="modal-backdrop" onMouseDown={() => setShowSettings(false)}>
+          <div className="modal" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="modal-head"><h2>簡報設定</h2><button className="icon-btn" onClick={() => setShowSettings(false)}><X size={18} /></button></div>
+            <form action={saveSettings}>
+              <div className="field"><label>標題</label><input className="input" name="title" defaultValue={deck.title} maxLength={150} required /></div>
+              <div className="field"><label>描述</label><textarea className="input" name="description" defaultValue={deck.description ?? ""} maxLength={1000} /></div>
+              <div className="field"><label>可見性</label>
+                <select className="input" name="visibility" defaultValue={deck.visibility}>
+                  <option value="PRIVATE">私人</option>
+                  <option value="PUBLIC">公開（登入者）</option>
+                  <option value="UNLISTED">不公開列表</option>
+                  <option value="PASSWORD">密碼保護</option>
+                </select>
+              </div>
+              <div className="field"><label>新密碼（選填，密碼保護用）</label><input className="input" name="password" type="password" minLength={6} /></div>
+              <div className="actions"><button className="btn small">儲存設定</button></div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

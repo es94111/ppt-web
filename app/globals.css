@@ -4,3 +4,43 @@
 .auth-divider{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13px;margin:18px 0}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:var(--line);flex:1}
 .filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}.filter-bar .input{width:auto;min-width:170px}.pagination{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:20px}.truncate-cell{max-width:280px;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:580px){.grid{grid-template-columns:1fr}.section-head{align-items:start;flex-direction:column}.hero h1{font-size:46px}.nav-links{gap:9px}.container{width:min(100% - 24px,1180px)}}
+
+/* 投影片渲染（Markdown / 圖片）— 編輯器預覽與播放器共用 */
+.slide-surface{position:relative;width:100%;aspect-ratio:16/9;background:#fff;overflow:hidden;container-type:inline-size}
+.slide-surface-image{display:flex;align-items:center;justify-content:center}
+.slide-surface-image img{width:100%;height:100%;object-fit:contain}
+.slide-md{height:100%;overflow:auto;padding:6cqw 7cqw;font-size:3.4cqw;line-height:1.5;color:#1c1e2a;word-wrap:break-word}
+.slide-md>:first-child{margin-top:0}
+.slide-md h1{font-size:1.9em;margin:.2em 0 .5em;letter-spacing:-.02em;line-height:1.1}
+.slide-md h2{font-size:1.5em;margin:.2em 0 .5em;line-height:1.15}
+.slide-md h3{font-size:1.25em;margin:.3em 0 .4em}
+.slide-md p{margin:.5em 0}
+.slide-md ul,.slide-md ol{margin:.4em 0;padding-left:1.4em}
+.slide-md li{margin:.25em 0}
+.slide-md a{color:var(--brand);text-decoration:underline}
+.slide-md code{background:#f0eff7;border-radius:4px;padding:.1em .35em;font-size:.9em;font-family:ui-monospace,Menlo,Consolas,monospace}
+.slide-md pre{background:#1b1c28;color:#e7e7f3;padding:1em;border-radius:8px;overflow:auto;font-size:.85em}
+.slide-md pre code{background:transparent;padding:0;color:inherit}
+.slide-md img{max-width:100%;border-radius:6px}
+.slide-md blockquote{margin:.6em 0;padding-left:.8em;border-left:4px solid var(--brand);color:#4a4d5e}
+.slide-md table{border-collapse:collapse;width:100%;font-size:.9em}
+.slide-md th,.slide-md td{border:1px solid #d9dbe5;padding:.4em .6em;text-align:left}
+.slide-md hr{border:0;border-top:1px solid var(--line);margin:.8em 0}
+
+/* 設定彈窗標題列 */
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.modal-head h2{margin:0}
+.icon-btn{background:none;border:0;color:var(--muted);padding:5px;border-radius:7px;display:inline-flex}
+.icon-btn:hover{background:#f0f0f5;color:var(--text)}
+
+/* 儀表板 + 上傳面板 */
+.dashboard-layout{display:grid;grid-template-columns:1fr 300px;gap:26px;align-items:start}
+.dashboard-main{min-width:0}
+.upload-panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 4px 16px rgba(20,20,50,.04);position:sticky;top:90px}
+.upload-panel h2{margin:0 0 4px;font-size:18px;letter-spacing:-.02em}
+.upload-tile{width:100%;display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px;background:#fafaff;color:var(--text)}
+.upload-tile:hover:not(:disabled){border-color:var(--brand);background:#f3f1ff}
+.upload-tile:disabled{opacity:.55;cursor:not-allowed}
+.upload-tile strong{display:block;font-size:14px}
+.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:850px){.dashboard-layout{grid-template-columns:1fr}.upload-panel{position:static}}

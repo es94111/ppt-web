@@ -18,6 +18,6 @@ export async function POST(request: NextRequest) {
   const parsed = deckCreateSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("輸入資料不正確", 400, parsed.error.flatten());
   if (parsed.data.visibility === "PASSWORD") return jsonError("建立後請設定密碼再切換為密碼保護", 400);
-  const deck = await db.deck.create({ data: { ...parsed.data, ownerId: user.id, slides: { create: { order: 1, content: { background: "#ffffff", elements: [] } } } }, include: { slides: true } });
+  const deck = await db.deck.create({ data: { ...parsed.data, ownerId: user.id, slides: { create: { order: 1, content: { kind: "markdown", markdown: "# 新簡報\n\n開始用 Markdown 撰寫，用 `---` 分頁。" } } } }, include: { slides: true } });
   return NextResponse.json(deck, { status: 201 });
 }
