@@ -1,6 +1,6 @@
 # SlideForge
 
-![version](https://img.shields.io/badge/version-1.1.1-blue)
+![version](https://img.shields.io/badge/version-1.2.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-15-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 
@@ -33,6 +33,7 @@
 
 - **線上瀏覽**：逐頁播放簡報，支援上一頁／下一頁、鍵盤左右鍵、頁碼指示與全螢幕。
 - **Markdown 編輯**：在瀏覽器內用 Markdown 撰寫投影片，左側輸入、右側即時預覽，以單獨一行的 `---` 分頁。
+- **精美主題 + 動畫**：用一組安全的版面標籤（`s-*`）做出深色/淺色主題、漸層標題、數據卡、多欄等旗艦級版面；播放時投影片淡入、內容逐項浮現（尊重 reduced-motion）。撰寫說明與範例見 [`docs/examples/`](docs/examples/)。
 - **上傳匯入**：上傳 `.md` Markdown 檔匯入成可編輯簡報；上傳 `.pptx` 經 LibreOffice 轉成每頁圖片供唯讀瀏覽。
 - **公開藝廊**：`/explore` 可瀏覽全站公開簡報，支援關鍵字搜尋與最新／最熱門排序。
 - **匿名瀏覽**：公開簡報與公開藝廊**未登入即可觀看**；私人與密碼簡報仍需登入或密碼。
