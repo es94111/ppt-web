@@ -21,6 +21,6 @@ export const registerSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
   password: z.string().min(10).max(128).regex(/[a-z]/, "需包含小寫字母").regex(/[A-Z]/, "需包含大寫字母").regex(/[0-9]/, "需包含數字")
 });
-export const deckCreateSchema = z.object({ title: z.string().trim().min(1).max(150), description: z.string().trim().max(1000).optional(), visibility: z.enum(["PRIVATE", "PASSWORD", "PUBLIC", "UNLISTED"]).default("PRIVATE") });
+export const deckCreateSchema = z.object({ title: z.string().trim().min(1).max(150), description: z.string().trim().max(1000).optional(), visibility: z.enum(["PRIVATE", "AUTHENTICATED", "PASSWORD", "PUBLIC", "UNLISTED"]).default("PRIVATE") });
 export const deckUpdateSchema = deckCreateSchema.partial().extend({ password: z.string().min(6).max(128).nullable().optional() });
 export const viewSchema = z.object({ slideOrder: z.number().int().min(1).max(10000).nullable().optional() });

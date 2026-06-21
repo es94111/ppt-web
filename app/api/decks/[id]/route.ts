@@ -12,6 +12,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const owns = !!user && (user.role === "ADMIN" || deck.ownerId === user.id);
   // PUBLIC / UNLISTED 允許匿名；若有設定密碼，仍須先取得簡報憑證。
   if (deck.visibility === "PRIVATE" && !owns) return jsonError(user ? "沒有權限" : "請先登入", user ? 403 : 401);
+  if (deck.visibility === "AUTHENTICATED" && !user) return jsonError("請先登入", 401);
   if (deck.passwordHash && !owns && !hasDeckCookie(request, id)) return jsonError("需要簡報密碼", 403);
   const { passwordHash: _, ...safe } = deck;
   return NextResponse.json({ ...safe, canEdit: owns && (["ADMIN", "USER"] as string[]).includes(user!.role) });

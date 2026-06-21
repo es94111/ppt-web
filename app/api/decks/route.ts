@@ -6,7 +6,7 @@ import { deckCreateSchema } from "@/lib/schemas";
 export async function GET() {
   const user = await requireUser();
   if (!user) return jsonError("請先登入", 401);
-  const where = user.role === "ADMIN" ? {} : { OR: [{ ownerId: user.id }, { visibility: { in: ["PUBLIC" as const, "PASSWORD" as const] } }] };
+  const where = user.role === "ADMIN" ? {} : { OR: [{ ownerId: user.id }, { visibility: { in: ["PUBLIC" as const, "PASSWORD" as const, "AUTHENTICATED" as const] } }] };
   const decks = await db.deck.findMany({ where, include: { owner: { select: { name: true, email: true } }, _count: { select: { slides: true, viewLogs: true } } }, orderBy: { updatedAt: "desc" } });
   return NextResponse.json(decks.map(({ passwordHash, ...deck }) => ({ ...deck, isPasswordProtected: !!passwordHash })));
 }
