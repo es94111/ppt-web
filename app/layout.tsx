@@ -16,7 +16,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <header className="nav"><div className="container nav-inner">
       <Link className="logo" href="/"><span className="logo-mark"><Presentation size={20}/></span>SlideForge</Link>
       <nav className="nav-links">
-        <Link href="/explore">探索</Link>
+        <Link href="/">探索</Link>
         {session?.user ? <>
           <Link className="hide-mobile" href="/dashboard">我的簡報</Link>
           {session.user.role === "ADMIN" && <Link className="hide-mobile" href="/admin/users">管理後台</Link>}
