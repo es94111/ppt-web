@@ -1,12 +1,12 @@
 {
   "name": "ppt-web",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "echo \"Next 16 removed 'next lint'. Add an ESLint flat config (eslint.config.mjs) + eslint/eslint-config-next to enable linting.\"",
     "typecheck": "prisma generate && tsc --noEmit",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
@@ -14,30 +14,33 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@auth/prisma-adapter": "2.7.4",
+    "@auth/prisma-adapter": "^2.11.2",
     "@aws-sdk/client-s3": "^3.1073.0",
     "@aws-sdk/s3-request-presigner": "^3.1073.0",
-    "@prisma/client": "^6.2.1",
-    "bcryptjs": "^2.4.3",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "bcryptjs": "^3.0.3",
     "dompurify": "^3.4.11",
-    "lucide-react": "^0.468.0",
+    "lucide-react": "^1.21.0",
     "marked": "^18.0.5",
-    "next": "^15.1.3",
-    "next-auth": "5.0.0-beta.25",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "zod": "^3.24.1"
+    "next": "^16.2.9",
+    "next-auth": "5.0.0-beta.31",
+    "pg": "^8.22.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/node": "^22.10.2",
-    "@types/react": "^19.0.3",
-    "@types/react-dom": "^19.0.2",
-    "prisma": "^6.2.1",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "@types/node": "^22.20.0",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "dotenv": "^17.4.2",
+    "prisma": "^7.8.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
   },
   "overrides": {
-    "@auth/core": "0.37.2"
+    "@auth/core": "0.41.2"
   }
 }

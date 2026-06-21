@@ -1,8 +1,8 @@
 # SlideForge
 
-![version](https://img.shields.io/badge/version-1.3.1-blue)
-![Next.js](https://img.shields.io/badge/Next.js-15-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![version](https://img.shields.io/badge/version-1.4.0-blue)
+![Next.js](https://img.shields.io/badge/Next.js-16-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-6-blue)
 
 線上投影片建立、瀏覽與權限管理平台。使用者可在網頁上原生建立／編輯投影片並逐頁瀏覽，具備角色權限、簡報密碼保護，以及含 IP 位址的完整瀏覽稽核。
 
@@ -48,9 +48,9 @@
 
 | 層級 | 技術 |
 |------|------|
-| 框架 | Next.js 15（App Router）、React 19 |
+| 框架 | Next.js 16（App Router、Turbopack）、React 19 |
 | 語言 | TypeScript |
-| 資料庫 | PostgreSQL + Prisma ORM |
+| 資料庫 | PostgreSQL + Prisma ORM 7（`@prisma/adapter-pg` driver adapter） |
 | 認證 | Auth.js（NextAuth v5）— Credentials + Google |
 | 圖片儲存 | S3 相容物件儲存（presigned upload） |
 | 測試 | Vitest |
@@ -158,7 +158,7 @@ Google OAuth 的 Authorized redirect URI 則設為 `https://ppt.shao.one/api/aut
 | `npm run dev` | 開發伺服器 |
 | `npm run build` | 正式建置（先 `prisma generate` 再 `next build`，standalone 輸出） |
 | `npm start` | 啟動正式建置 |
-| `npm run lint` | ESLint |
+| `npm run lint` | 提示訊息（Next 16 已移除 `next lint`；如需 lint 請自行加上 ESLint flat config） |
 | `npm run typecheck` | 型別檢查 |
 | `npm test` | Vitest 測試 |
 | `npm run db:push` | 將 schema 套用到資料庫 |
