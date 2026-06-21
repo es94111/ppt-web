@@ -56,6 +56,7 @@ Next.js 15（App Router）/ TypeScript / PostgreSQL / Prisma / Auth.js / Tailwin
 
 | 版本 | 日期 | 說明 |
 |------|------|------|
+| 1.4.0 | 2026-06-21 | 相依套件全面升級：Next 15→16（Turbopack 預設、移除 `next lint`）、Prisma 6→7（datasource `url` 移至 `prisma.config.ts`、執行期改用 `@prisma/adapter-pg` driver adapter、`lib/db.ts` 改寫、新增 `pg`/`dotenv`、Dockerfile 複製 `prisma.config.ts`）、Zod 3→4、Vitest 2→4、TypeScript 5→6（新增 `types/css.d.ts` 滿足 TS2882 CSS side-effect import）、bcryptjs 2→3（移除 `@types/bcryptjs`，型別已內建）、lucide-react 0→1、next-auth `beta.25→beta.31`（支援 Next 16）、`@auth/core` override `0.37.2→0.41.2`；`@types/node` 維持 `^22` 對齊 Node 22 runtime；`next-auth` 維持 v5 beta（不降級至 v4 latest）。安全稽核由 7 項（含 1 critical、1 high）降至 6 moderate（皆為建置/開發工具的傳遞相依）。 |
 | 1.3.1 | 2026-06-21 | 公開藝廊整併至首頁：`app/page.tsx` 由 hero 行銷頁改為公開簡報藝廊（沿用 explore 查詢 `PUBLIC+READY`、搜尋/排序、第一張投影片封面、隨 session 切換 CTA）；`/explore` 改為 `redirect()` 至 `/`（保留 `q`/`sort`）；導覽列「探索」改指向 `/`。 |
 | 1.3.0 | 2026-06-20 | 上傳更新既有簡報：工作區卡片「更新」動作；Markdown 重用 `PUT /api/decks/:id/markdown`，PPTX 新增 `POST /api/decks/:id/import/pptx`（重新轉檔取代頁面、`getEditableDeck` 把關、型別需相符、`PROCESSING→READY/FAILED`）。 |
 | 1.2.1 | 2026-06-20 | 修正簡報卡片封面：`/dashboard` 與 `/explore` 卡片改以第一張投影片渲染為封面（查詢 `slides take:1`、`SlideView` 填滿 `.deck-cover`、`pointer-events:none`），取代固定圖示。 |
