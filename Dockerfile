@@ -18,6 +18,10 @@ COPY . .
 # `next build` runs `prisma generate` first (see package.json build script).
 # DATABASE_URL is only needed at runtime, not for the build.
 ENV NEXT_TELEMETRY_DISABLED=1
+# Type-check explicitly: `next build` has `typescript.ignoreBuildErrors` enabled
+# (Next 16 can't drive the TypeScript 7 native compiler's legacy API), so the
+# type gate lives here in `tsc --noEmit`. A type error fails the image build.
+RUN npm run typecheck
 RUN npm run build
 
 # ---- Runner ----
