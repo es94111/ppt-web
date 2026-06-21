@@ -1,0 +1,15 @@
+title = "Gitleaks config"
+
+[extend]
+useDefault = true
+
+# 注意:用「單數 [allowlist]」而非 [[allowlists]]/targetRules,
+# 否則 action 釘住的舊版 gitleaks(~8.24)會忽略此段。
+[allowlist]
+description = "Generated build artifacts contain deterministic hashes that trigger generic-api-key false positives."
+paths = [
+  '''^\.next/''',
+  '''^build/''',
+  '''^dist/''',
+  '''^out/''',
+]
