@@ -16,9 +16,9 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
   const owns = !!session?.user && (session.user.role === "ADMIN" || deck.ownerId === session.user.id);
   // 私人：須登入且為擁有者/Admin
   if (deck.visibility === "PRIVATE" && !owns) redirect(session?.user ? "/dashboard" : "/login");
-  // 密碼保護：未持有效憑證 → 密碼頁（匿名也可輸入密碼）
+  // 公開簡報可額外設定密碼；擁有者與管理員可直接觀看。
   const accessToken = (await cookies()).get(`deck_access_${id}`)?.value;
-  if (deck.visibility === "PASSWORD" && !owns && !verifyDeckAccessToken(id, accessToken)) return <main><DeckPassword deckId={id} title={deck.title} /></main>;
+  if (deck.passwordHash && !owns && !verifyDeckAccessToken(id, accessToken)) return <main><DeckPassword deckId={id} title={deck.title} /></main>;
   // PUBLIC / UNLISTED → 允許匿名瀏覽
   if (deck.status !== "READY") {
     const text = deck.status === "PROCESSING" ? "PPTX 轉檔中，請稍後重新整理。" : "PPTX 轉檔失敗，請重新上傳。";

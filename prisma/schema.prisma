@@ -127,3 +127,9 @@ model VerificationToken {
   expires    DateTime
   @@unique([identifier, token])
 }
+
+model SiteSetting {
+  id                      Int      @id
+  allowPublicRegistration Boolean  @default(true)
+  updatedAt               DateTime @updatedAt
+}

@@ -5,13 +5,14 @@ import { BarChart3, Play, Settings2, X } from "lucide-react";
 import { SlideView } from "./SlideView";
 import { splitMarkdownSlides, markdownToContent } from "@/lib/slides";
 
-type Deck = { id: string; title: string; description: string | null; visibility: string; initialMarkdown: string };
+type Deck = { id: string; title: string; description: string | null; visibility: string; hasPassword: boolean; initialMarkdown: string };
 
 export function Editor({ deck }: { deck: Deck }) {
   const router = useRouter();
   const [md, setMd] = useState(deck.initialMarkdown);
   const [state, setState] = useState("已儲存");
   const [showSettings, setShowSettings] = useState(false);
+  const [settingsVisibility, setSettingsVisibility] = useState(deck.visibility === "PASSWORD" ? "PUBLIC" : deck.visibility);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const slides = useMemo(() => splitMarkdownSlides(md), [md]);
@@ -35,7 +36,8 @@ export function Editor({ deck }: { deck: Deck }) {
 
   async function saveSettings(form: FormData) {
     const visibility = String(form.get("visibility"));
-    const password = String(form.get("password") || "") || undefined;
+    const removePassword = form.get("removePassword") === "on";
+    const password = removePassword ? null : String(form.get("password") || "") || undefined;
     const r = await fetch(`/api/decks/${deck.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -85,14 +87,18 @@ export function Editor({ deck }: { deck: Deck }) {
               <div className="field"><label>標題</label><input className="input" name="title" defaultValue={deck.title} maxLength={150} required /></div>
               <div className="field"><label>描述</label><textarea className="input" name="description" defaultValue={deck.description ?? ""} maxLength={1000} /></div>
               <div className="field"><label>可見性</label>
-                <select className="input" name="visibility" defaultValue={deck.visibility}>
+                <select className="input" name="visibility" value={settingsVisibility} onChange={(e) => setSettingsVisibility(e.target.value)}>
                   <option value="PRIVATE">私人</option>
-                  <option value="PUBLIC">公開（登入者）</option>
+                  <option value="PUBLIC">公開</option>
                   <option value="UNLISTED">不公開列表</option>
-                  <option value="PASSWORD">密碼保護</option>
                 </select>
               </div>
-              <div className="field"><label>新密碼（選填，密碼保護用）</label><input className="input" name="password" type="password" minLength={6} /></div>
+              {settingsVisibility === "PUBLIC" && <div className="field">
+                <label>{deck.hasPassword ? "更換密碼（留空則保留目前密碼）" : "公開簡報密碼（選填）"}</label>
+                <input className="input" name="password" type="password" minLength={6} autoComplete="new-password" />
+                <small className="muted">設定密碼後，簡報仍會出現在公開列表，但訪客必須先輸入密碼。</small>
+                {deck.hasPassword && <label><input name="removePassword" type="checkbox" /> 移除密碼保護</label>}
+              </div>}
               <div className="actions"><button className="btn small">儲存設定</button></div>
             </form>
           </div>
