@@ -9,7 +9,7 @@ export default async function Dashboard() {
   const session = await auth();
   if (!session?.user) redirect("/login");
   if (!session.user.isActive) redirect("/login");
-  const where = session.user.role === "ADMIN" ? {} : { OR: [{ ownerId: session.user.id }, { visibility: { in: ["PUBLIC" as const, "PASSWORD" as const] } }] };
+  const where = session.user.role === "ADMIN" ? {} : { OR: [{ ownerId: session.user.id }, { visibility: { in: ["PUBLIC" as const, "PASSWORD" as const, "AUTHENTICATED" as const] } }] };
   const decks = await db.deck.findMany({ where, include: { owner: { select: { name: true, email: true } }, _count: { select: { slides: true, viewLogs: true } }, slides: { orderBy: { order: "asc" }, take: 1, select: { content: true } } }, orderBy: { updatedAt: "desc" } });
   const canCreate = session.user.role !== "GUEST";
   return (

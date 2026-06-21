@@ -89,6 +89,7 @@ export function Editor({ deck }: { deck: Deck }) {
               <div className="field"><label>可見性</label>
                 <select className="input" name="visibility" value={settingsVisibility} onChange={(e) => setSettingsVisibility(e.target.value)}>
                   <option value="PRIVATE">私人</option>
+                  <option value="AUTHENTICATED">限登入觀看</option>
                   <option value="PUBLIC">公開</option>
                   <option value="UNLISTED">不公開列表</option>
                 </select>
