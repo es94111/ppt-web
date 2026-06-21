@@ -23,6 +23,11 @@ RUN npm run build
 # ---- Runner ----
 FROM node:24-alpine AS runner
 RUN apk add --no-cache openssl
+# The production image only runs `node`; npm/npx/corepack are unused here and
+# ship their own bundled, periodically-vulnerable dependencies (undici, tar, …).
+# Drop them so the container scan stays clean. Prisma is invoked via its local bin.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+  /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -48,4 +53,4 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.
 USER nextjs
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && exec node server.js"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && exec node server.js"]

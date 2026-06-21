@@ -1,6 +1,6 @@
 {
   "name": "ppt-web",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -41,6 +41,8 @@
     "vitest": "^4.1.9"
   },
   "overrides": {
-    "@auth/core": "0.41.2"
+    "@auth/core": "0.41.2",
+    "postcss": "^8.5.10",
+    "@hono/node-server": "^1.19.13"
   }
 }
