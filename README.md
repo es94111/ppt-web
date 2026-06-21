@@ -1,6 +1,6 @@
 # SlideForge
 
-![version](https://img.shields.io/badge/version-1.3.0-blue)
+![version](https://img.shields.io/badge/version-1.3.1-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-15-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 
@@ -35,8 +35,8 @@
 - **Markdown 編輯**：在瀏覽器內用 Markdown 撰寫投影片，左側輸入、右側即時預覽，以單獨一行的 `---` 分頁。
 - **精美主題 + 動畫**：用一組安全的版面標籤（`s-*`）做出深色/淺色主題、漸層標題、數據卡、多欄等旗艦級版面；播放時投影片淡入、內容逐項浮現（尊重 reduced-motion）。撰寫說明與範例見 [`docs/examples/`](docs/examples/)。
 - **上傳匯入**：上傳 `.md` Markdown 檔匯入成可編輯簡報；上傳 `.pptx` 經 LibreOffice 轉成每頁圖片供唯讀瀏覽。
-- **公開藝廊**：`/explore` 可瀏覽全站公開簡報，支援關鍵字搜尋與最新／最熱門排序。
-- **匿名瀏覽**：公開簡報與公開藝廊**未登入即可觀看**；私人與密碼簡報仍需登入或密碼。
+- **公開藝廊（首頁）**：首頁 `/` 即公開簡報藝廊，可瀏覽全站公開簡報，支援關鍵字搜尋與最新／最熱門排序（舊路徑 `/explore` 自動轉址至首頁）。
+- **匿名瀏覽**：公開簡報與首頁公開藝廊**未登入即可觀看**；私人與密碼簡報仍需登入或密碼。
 - **三種角色**：管理員（Admin）、使用者（User）、訪客（Guest）。首位以 Email 註冊者自動成為 Admin。
 - **角色管理**：Admin 可在後台指派任意帳號為 User／Guest／Admin，並啟用或停用帳號。
 - **簡報密碼保護**：每份簡報可設定獨立瀏覽密碼，並支援私人／需密碼／公開／不公開列出等可見性。
@@ -214,7 +214,8 @@ docker run -d -p 3000:3000 \
 
 | 路徑 | 說明 |
 |------|------|
-| `/` `/login` `/register` | 首頁與登入註冊 |
+| `/` | 首頁（公開簡報藝廊，含搜尋／排序） |
+| `/login` `/register` | 登入註冊 |
 | `/dashboard` | 我的簡報（建立／管理） |
 | `/decks/[id]/edit` | 投影片編輯器 |
 | `/d/[id]` | 瀏覽播放器 |
