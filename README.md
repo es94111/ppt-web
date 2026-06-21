@@ -1,8 +1,8 @@
 # SlideForge
 
-![version](https://img.shields.io/badge/version-1.7.0-blue)
+![version](https://img.shields.io/badge/version-1.7.1-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-6-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-7-blue)
 
 線上投影片建立、瀏覽與權限管理平台。使用者可在網頁上原生建立／編輯投影片並逐頁瀏覽，具備角色權限、簡報密碼保護，以及含 IP 位址的完整瀏覽稽核。
 
