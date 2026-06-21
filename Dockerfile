@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- Dependencies ----
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 # Prisma needs libssl at engine load time.
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
@@ -10,7 +10,7 @@ COPY prisma ./prisma
 RUN npm ci
 
 # ---- Builder ----
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -21,7 +21,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # ---- Runner ----
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 RUN apk add --no-cache openssl
 WORKDIR /app
 

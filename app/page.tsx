@@ -12,8 +12,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
   const q = (sp.q || "").trim().slice(0, 100);
   const sort = sp.sort === "popular" ? "popular" : "recent";
   const decks = await db.deck.findMany({
-    where: { visibility: "PUBLIC", status: "READY", ...(q ? { title: { contains: q, mode: "insensitive" } } : {}) },
-    select: { id: true, title: true, description: true, sourceType: true, owner: { select: { name: true } }, _count: { select: { slides: true, viewLogs: true } }, slides: { orderBy: { order: "asc" }, take: 1, select: { content: true } } },
+    where: { visibility: { in: ["PUBLIC", "PASSWORD"] }, status: "READY", ...(q ? { title: { contains: q, mode: "insensitive" } } : {}) },
+    select: { id: true, title: true, description: true, sourceType: true, passwordHash: true, owner: { select: { name: true } }, _count: { select: { slides: true, viewLogs: true } }, slides: { orderBy: { order: "asc" }, take: 1, select: { content: true } } },
     orderBy: sort === "popular" ? { viewLogs: { _count: "desc" } } : { updatedAt: "desc" },
     take: 60,
   });
@@ -38,7 +38,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
               <article className="card deck-card" key={d.id}>
                 <Link href={`/d/${d.id}`}><div className="deck-cover">{d.slides?.[0] ? <SlideView content={d.slides[0].content} /> : <Presentation size={48} />}</div></Link>
                 <div className="deck-body">
-                  <div className="deck-meta"><span className="badge">{d.sourceType === "PPTX" ? "PPTX" : "Markdown"}</span><span>{d._count.slides} 頁 · {d._count.viewLogs} 次瀏覽</span></div>
+                  <div className="deck-meta"><span className="badge">{d.passwordHash ? "密碼保護" : d.sourceType === "PPTX" ? "PPTX" : "Markdown"}</span><span>{d._count.slides} 頁 · {d._count.viewLogs} 次瀏覽</span></div>
                   <h3>{d.title}</h3>
                   <p className="muted">{d.description || `由 ${d.owner.name || "未具名"} 建立`}</p>
                   <div className="actions"><Link className="btn small" href={`/d/${d.id}`}>播放</Link></div>

@@ -19,7 +19,7 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
   const initialMarkdown = joinSlidesToMarkdown(deck.slides.map((s) => s.content));
   return (
     <main>
-      <Editor deck={{ id: deck.id, title: deck.title, description: deck.description, visibility: deck.visibility, initialMarkdown }} />
+      <Editor deck={{ id: deck.id, title: deck.title, description: deck.description, visibility: deck.visibility, hasPassword: !!deck.passwordHash, initialMarkdown }} />
     </main>
   );
 }

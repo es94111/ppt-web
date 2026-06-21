@@ -10,9 +10,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const deck = await db.deck.findUnique({ where: { id }, include: { owner: { select: { name: true } }, slides: { orderBy: { order: "asc" } } } });
   if (!deck) return jsonError("找不到簡報", 404);
   const owns = !!user && (user.role === "ADMIN" || deck.ownerId === user.id);
-  // PUBLIC / UNLISTED 允許匿名；PRIVATE 須擁有者/Admin；PASSWORD 須密碼或擁有者
+  // PUBLIC / UNLISTED 允許匿名；若有設定密碼，仍須先取得簡報憑證。
   if (deck.visibility === "PRIVATE" && !owns) return jsonError(user ? "沒有權限" : "請先登入", user ? 403 : 401);
-  if (deck.visibility === "PASSWORD" && !owns && !hasDeckCookie(request, id)) return jsonError("需要簡報密碼", 403);
+  if (deck.passwordHash && !owns && !hasDeckCookie(request, id)) return jsonError("需要簡報密碼", 403);
   const { passwordHash: _, ...safe } = deck;
   return NextResponse.json({ ...safe, canEdit: owns && (["ADMIN", "USER"] as string[]).includes(user!.role) });
 }
@@ -26,9 +26,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const parsed = deckUpdateSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("輸入資料不正確", 400, parsed.error.flatten());
   const { password, ...data } = parsed.data;
-  const passwordHash = password === undefined ? undefined : password === null ? null : await bcrypt.hash(password, 12);
-  if (data.visibility === "PASSWORD" && !passwordHash && !access.deck.passwordHash) return jsonError("密碼保護簡報必須設定密碼", 400);
-  const deck = await db.deck.update({ where: { id }, data: { ...data, passwordHash } });
+  const visibility = data.visibility === "PASSWORD" ? "PUBLIC" : data.visibility;
+  const effectiveVisibility = visibility ?? (access.deck.visibility === "PASSWORD" ? "PUBLIC" : access.deck.visibility);
+  const passwordHash = effectiveVisibility !== "PUBLIC" ? null : password === undefined ? undefined : password === null ? null : await bcrypt.hash(password, 12);
+  const deck = await db.deck.update({ where: { id }, data: { ...data, visibility, passwordHash } });
   return NextResponse.json({ ...deck, passwordHash: undefined });
 }
 
