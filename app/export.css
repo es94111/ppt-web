@@ -1,0 +1,15 @@
+.export-page{background:#f0f0f5;min-height:calc(100vh - 66px)}
+.export-toolbar{position:sticky;top:66px;z-index:20;background:rgba(250,250,251,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:12px 0}
+.export-toolbar-inner{display:flex;align-items:center;justify-content:space-between;gap:14px}.export-toolbar h1{font-size:var(--fs-md);margin:0}.export-actions{display:flex;gap:10px;flex-wrap:wrap}
+.print-deck{width:min(1120px,calc(100% - 32px));margin:26px auto;display:grid;gap:24px}
+.print-slide{background:#fff;box-shadow:0 10px 34px rgba(18,19,38,.16);break-after:page;page-break-after:always}
+.print-slide:last-child{break-after:auto;page-break-after:auto}
+@page{size:landscape;margin:0}
+@media print{
+  html,body{background:#fff!important}
+  .nav,.export-toolbar{display:none!important}
+  main,.export-page{min-height:auto;background:#fff!important}
+  .print-deck{width:100%;margin:0;display:block}
+  .print-slide{width:100vw;height:56.25vw;max-height:100vh;box-shadow:none;overflow:hidden}
+  .print-slide .slide-surface{width:100%;height:100%;aspect-ratio:auto}
+}

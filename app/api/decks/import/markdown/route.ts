@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { jsonError, requireUser } from "@/lib/http";
 import { markdownImportSchema, slideContentSchema } from "@/lib/schemas";
-import { splitMarkdownSlides, markdownToContent } from "@/lib/slides";
+import { parseMarkdownDeck, markdownToContent } from "@/lib/slides";
 
 const MAX_BYTES = 1 * 1024 * 1024; // 1MB
 const MAX_SLIDES = 500;
@@ -25,9 +25,9 @@ export async function POST(request: NextRequest) {
   const parsed = markdownImportSchema.safeParse({ title, markdown });
   if (!parsed.success) return jsonError("Markdown 內容不正確", 400, parsed.error.flatten());
 
-  const sections = splitMarkdownSlides(parsed.data.markdown);
+  const sections = parseMarkdownDeck(parsed.data.markdown);
   if (sections.length > MAX_SLIDES) return jsonError(`投影片數量上限為 ${MAX_SLIDES} 頁`, 400);
-  const contents = sections.map(markdownToContent);
+  const contents = sections.map((section) => markdownToContent(section.markdown));
   for (const content of contents) {
     if (!slideContentSchema.safeParse(content).success) return jsonError("單頁內容超過長度上限", 400);
   }
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       visibility: "PRIVATE",
       sourceType: "MARKDOWN",
       status: "READY",
-      slides: { create: contents.map((content, i) => ({ order: i + 1, content })) },
+      slides: { create: sections.map((section, i) => ({ order: i + 1, content: contents[i], notes: section.notes })) },
     },
   });
   return NextResponse.json({ id: deck.id }, { status: 201 });

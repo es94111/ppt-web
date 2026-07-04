@@ -11,4 +11,16 @@
 .md-preview-item{position:relative}
 .md-preview-num{position:absolute;left:-3px;top:-3px;z-index:2;background:#181824;color:#fff;border-radius:5px;padding:1px 7px;font-size:11px}
 .md-preview-frame{box-shadow:0 8px 26px rgba(12,13,31,.14);border-radius:8px;overflow:hidden;background:#fff}
+.modal-wide{width:min(760px,100%)}
+.template-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+.template-tile{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:16px;text-align:left;color:var(--text);transition:border-color .16s var(--ease),background .16s var(--ease),transform .16s var(--ease)}
+.template-tile:hover{border-color:var(--brand);background:var(--brand-soft);transform:translateY(-1px)}
+.template-tile strong{display:block;font-family:var(--font-display);font-size:15px;margin-bottom:4px}
+.template-tile span{display:block;color:var(--muted);font-size:13px;line-height:1.5}
+.revision-list{display:grid;gap:10px;margin-top:14px;max-height:min(60vh,520px);overflow:auto}
+.revision-item{display:flex;justify-content:space-between;align-items:center;gap:16px;border:1px solid var(--line);border-radius:8px;padding:13px 14px;background:var(--bg)}
+.revision-item p{margin:4px 0 0;font-size:13px}
+.manager-stack{display:grid;gap:16px;margin-top:12px}.manager-form{display:grid;gap:10px;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:14px}.manager-form.inline{grid-template-columns:1fr 160px auto;align-items:center}.check-row{display:flex;gap:8px;align-items:center;color:var(--text-2);font-size:13px}.manager-list{display:grid;gap:10px;max-height:min(52vh,460px);overflow:auto}.manager-item{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:12px}.manager-item p{margin:4px 0 0;font-size:13px}.manager-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.compact-input{width:auto;min-width:126px;padding:7px 9px}.comment-item.resolved{opacity:.62}.comment-item.resolved p{text-decoration:line-through}.comment-item small{display:block;margin-top:5px}
+.empty.compact{padding:28px 18px}
 @media(max-width:850px){.md-body{grid-template-columns:1fr}.md-preview{display:none}.md-title{max-width:50vw}}
+@media(max-width:700px){.template-grid{grid-template-columns:1fr}.md-toolbar{height:auto;min-height:56px;flex-wrap:wrap;padding:10px 12px}.md-toolbar .save-state{margin-left:0}.revision-item,.manager-item{align-items:flex-start;flex-direction:column}.manager-form.inline{grid-template-columns:1fr}}

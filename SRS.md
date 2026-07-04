@@ -21,10 +21,17 @@ SlideForge 是以 Next.js 全端建構的線上投影片平台，提供網頁原
 - **FR-AUTH**：Email+密碼 與 Google OAuth 登入；Auth.js（NextAuth v5）；密碼 bcrypt 雜湊；登入/密碼驗證速率限制。
 - **FR-ROLE**：Admin 後台調整角色與啟用狀態；至少保留一名 Admin。
 - **FR-DECK**：Deck CRUD + 可見性（PRIVATE/PASSWORD/PUBLIC/UNLISTED）+ 密碼設定。
-- **FR-SLIDE**：Slide CRUD、排序；content 為 JSON（text/image/shape 元素），寫入前 Zod 驗證。
-- **FR-EDITOR**：Admin/Owner 可進編輯器；自動存檔；圖片走 S3 相容 presigned upload。
-- **FR-VIEWER**：唯讀渲染、上一頁/下一頁、鍵盤、全螢幕、頁碼。
-- **FR-AUDIT**：ViewLog 記錄 user/deck/slideOrder/ip/ua/time；Admin 全站查詢、User 自助查詢。
+- **FR-SLIDE**：Slide CRUD、排序；content 為 JSON（markdown/image 元素），寫入前 Zod 驗證。
+- **FR-EDITOR**：Admin/Owner 可進編輯器；自動存檔；圖片走 S3 相容 presigned upload；內建常用投影片版型庫，可插入封面、議程、數據、雙欄、課程章節與結尾行動等版型。
+- **FR-MARKDOWN-PLUS**：Markdown 渲染支援 Mermaid、KaTeX 與程式碼高亮；輸出仍需經 DOMPurify 消毒，Mermaid 以 strict security level 執行。
+- **FR-NOTES**：Markdown 投影片支援以獨立一行 `???` 分隔講者備註，備註寫入 `Slide.notes`，一般投影片渲染不顯示。
+- **FR-VIEWER**：唯讀渲染、上一頁/下一頁、鍵盤、全螢幕、頁碼；播放時支援 Presenter Mode，包含講者備註、下一頁預覽、計時器與目前頁/總頁數。
+- **FR-AUDIT**：ViewLog 記錄 user/deck/slideOrder/ip/ua/time；Admin 全站查詢、User 自助查詢；單份簡報提供每日趨勢、唯一訪客、熱門投影片、可能流失頁與來源統計。
+- **FR-REVISION**：Markdown 簡報自動儲存前定期建立 `DeckRevision` 快照，保留最近版本並允許擁有者/Admin 還原。
+- **FR-EXPORT**：擁有者/Admin 可開啟列印最佳化的 PDF 匯出頁，將每張投影片以 16:9 橫向頁面列印或另存 PDF。
+- **FR-SHARE-LINK**：擁有者/Admin 可為簡報建立多組分享連結；每組連結可設定名稱、到期時間、分享密碼、是否允許 PDF 下載，並可撤銷。
+- **FR-COLLAB**：擁有者/Admin 可加入協作者，角色為 VIEWER、COMMENTER、EDITOR；EDITOR 可編輯內容，COMMENTER/EDITOR 可留言與解決留言。
+- **FR-DISCOVERY**：Deck 支援 `category` 與多個 Tag；首頁可依關鍵字、分類、標籤搜尋，作者頁展示公開簡報；登入者可收藏/取消收藏公開簡報。
 
 ## 4. 非功能需求
 
@@ -39,7 +46,7 @@ Next.js 15（App Router）/ TypeScript / PostgreSQL / Prisma / Auth.js / Tailwin
 
 ## 6. 資料模型
 
-`User`、`Deck`、`Slide`、`ViewLog` 及 Auth.js 標準表（`Account`/`Session`）。詳見 `prisma/schema.prisma` 與設計文件 §5。
+`User`、`Deck`、`Slide`、`DeckRevision`、`ShareLink`、`DeckCollaborator`、`SlideComment`、`Tag`、`DeckTag`、`Favorite`、`ViewLog` 及 Auth.js 標準表（`Account`/`Session`）。詳見 `prisma/schema.prisma` 與設計文件 §5。
 
 ## 7. 部署與 CI/CD
 
@@ -56,6 +63,7 @@ Next.js 15（App Router）/ TypeScript / PostgreSQL / Prisma / Auth.js / Tailwin
 
 | 版本 | 日期 | 說明 |
 |------|------|------|
+| 2.0.0 | 2026-07-04 | 協作／分享／探索／版本歷史／匯出重大擴充，新增 7 張資料表（`DeckRevision`、`ShareLink`、`DeckCollaborator`、`SlideComment`、`Tag`、`DeckTag`、`Favorite`）與 `Deck.category` 欄位（migration `20260704000000_deck_revisions`、`20260704010000_sharing_collaboration_discovery`）。(1) FR-REVISION：Markdown 自動存檔前定期建立 `DeckRevision` 快照，`/api/decks/[id]/revisions/**` 提供列表與 `restore`。(2) FR-SHARE-LINK：`ShareLink`（token/label/passwordHash/allowDownload/expiresAt/revokedAt）多連結管理，`/s/[token]` 播放器與 `/s/[token]/pdf`，`/api/share-links/[token]/verify-password`。(3) FR-COLLAB：`DeckCollaborator`（`CollaboratorRole` VIEWER/COMMENTER/EDITOR）+ `SlideComment`（留言／resolve／reopen），`/api/decks/[id]/collaborators/**`、`/api/decks/[id]/comments/**`。(4) FR-DISCOVERY：`Tag`/`DeckTag`/`Deck.category` + `Favorite`，首頁依 keyword／分類／標籤搜尋、`/authors/[id]` 作者頁、`/api/decks/[id]/favorite` 收藏。(5) FR-EXPORT：`/decks/[id]/export/pdf` 列印最佳化匯出（16:9 橫向、`app/export.css`、`PrintButton`）。(6) FR-VIEWER Presenter Mode：`???` 分隔講者備註存入 `Slide.notes`，播放含講稿／下一頁預覽／計時器。(7) FR-MARKDOWN-PLUS：`marked` 渲染整合 Mermaid（strict）、KaTeX、highlight.js，輸出仍經 DOMPurify。(8) FR-EDITOR：`lib/slide-templates.ts` 版型庫。(9) FR-AUDIT：單份簡報成效分析（趨勢／唯一訪客／熱門頁／流失頁／來源）。新增相依 `mermaid`/`katex`/`highlight.js`。 |
 | 1.7.1 | 2026-06-21 | 採用 TypeScript 7 原生編譯器：`typescript` devDep `^6.0.3` → `7.0.1-rc`（Go 原生埠，含平台二進位）。因 Next 16 無法驅動原生埠的舊版 JS API（build 的 "Running TypeScript" 步驟會誤判 TS 未安裝而崩潰），`next.config.ts` 設 `typescript.ignoreBuildErrors: true` 跳過 build 內建型別檢查；型別把關改由獨立 `tsc --noEmit` 負責。Dockerfile builder 階段於 `npm run build` 前新增 `RUN npm run typecheck`；`docker-publish.yml` 新增 `verify` job（Node 24、`npm ci` → `npm run typecheck` → `npm test`），`build-and-push` 加 `needs: verify`。typecheck 約 6× 快（~15s → ~2.4s）；`tsc` 原生為靜態 Go 二進位，預期相容 alpine/musl，由 PR 的容器 build 自動驗證。 |
 | 1.7.0 | 2026-06-21 | 播放器（`components/Viewer.tsx`）功能擴充：(1) 新增 `viewMode` 狀態（`slide`/`overview`），總覽以縮圖網格（`.overview-grid`）呈現全部投影片、點選跳頁，G 鍵切換。(2) 新增雷射筆：`laserEnabled` 狀態 + `laserRef` 紅色光點隨 `onPointerMove` 以 `translate3d` 跟隨游標，L 鍵開關、Esc 關閉，總覽模式自動停用。(3) 新增「離開簡報」按鈕：`exitViewer()` 先 `document.exitFullscreen()` 再 `router.push(exitHref)`；`app/d/[id]/page.tsx` 依登入狀態傳入 `exitHref`（已登入 `/dashboard`、匿名 `/`）。(4) 鍵盤事件在 input/textarea/select/button 聚焦時略過；翻頁與雷射快捷鍵限 `slide` 模式。(5) `app/viewer.css` 新增總覽網格、雷射光點、active 狀態與 `@media(max-width:700px)` 控制列換行/精簡 RWD 樣式。 |
 | 1.6.0 | 2026-06-21 | 新增 `AUTHENTICATED`（限登入觀看）可見性：`prisma/schema.prisma` `Visibility` enum 新增值，migration `20260621010000_authenticated_visibility`（`ALTER TYPE "Visibility" ADD VALUE 'AUTHENTICATED'`，純新增、自動套用）；`lib/schemas.ts` `deckCreateSchema.visibility` enum 納入 `AUTHENTICATED`；`GET /api/decks/[id]` 與 `POST /api/decks/[id]/view` 對 `AUTHENTICATED` 未登入者回 401，`app/d/[id]/page.tsx` SSR 將未登入者導向 `/login?callbackUrl=/d/<id>`；列表查詢（`GET /api/decks`、`app/dashboard/page.tsx`）的非 admin `visibility in` 條件加入 `AUTHENTICATED`。登入回跳：`app/login/page.tsx` 讀取並驗證 `callbackUrl`（須為站內 `/` 開頭、非 `//`），傳入 `components/AuthForm.tsx`（credentials 與 Google 登入皆改用 `callbackUrl`）。`components/DeckManager.tsx` 與 `components/Editor.tsx` 可見性下拉新增「限登入觀看」選項。 |

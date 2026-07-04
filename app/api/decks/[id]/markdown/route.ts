@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getEditableDeck, jsonError, requireUser } from "@/lib/http";
+import { maybeCreateDeckRevision } from "@/lib/revisions";
 import { deckMarkdownSchema, slideContentSchema } from "@/lib/schemas";
-import { splitMarkdownSlides, markdownToContent } from "@/lib/slides";
+import { joinSlidesToMarkdown, parseMarkdownDeck, markdownToContent } from "@/lib/slides";
 
 const MAX_SLIDES = 500;
 
@@ -18,17 +19,22 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const parsed = deckMarkdownSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("內容格式不正確", 400, parsed.error.flatten());
 
-  const sections = splitMarkdownSlides(parsed.data.markdown);
+  const sections = parseMarkdownDeck(parsed.data.markdown);
   if (sections.length > MAX_SLIDES) return jsonError(`投影片數量上限為 ${MAX_SLIDES} 頁`, 400);
 
-  const contents = sections.map(markdownToContent);
+  const contents = sections.map((section) => markdownToContent(section.markdown));
   for (const content of contents) {
     if (!slideContentSchema.safeParse(content).success) return jsonError("單頁內容超過長度上限", 400);
   }
 
+  const currentSlides = await db.slide.findMany({ where: { deckId: id }, orderBy: { order: "asc" }, select: { content: true, notes: true } });
+  const currentMarkdown = joinSlidesToMarkdown(currentSlides);
+  if (currentMarkdown === parsed.data.markdown.trim()) return NextResponse.json({ ok: true, slideCount: contents.length });
+  await maybeCreateDeckRevision({ deckId: id, authorId: user.id, title: access.deck.title, markdown: currentMarkdown });
+
   await db.$transaction([
     db.slide.deleteMany({ where: { deckId: id } }),
-    ...contents.map((content, i) => db.slide.create({ data: { deckId: id, order: i + 1, content } })),
+    ...sections.map((section, i) => db.slide.create({ data: { deckId: id, order: i + 1, content: contents[i], notes: section.notes } })),
     db.deck.update({ where: { id }, data: { updatedAt: new Date() } }),
   ]);
 
