@@ -7,7 +7,7 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const limit = rateLimit(`deck:${id}:${getClientIp(request)}`, 8, 60_000);
+  const limit = await rateLimit(`deck:${id}:${getClientIp(request)}`, 8, 60_000);
   if (!limit.allowed) return NextResponse.json({ error: "嘗試次數過多" }, { status: 429, headers: { "Retry-After": String(limit.retryAfter) } });
   const parsed = z.object({ password: z.string().min(1).max(128) }).safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("請輸入密碼", 400);

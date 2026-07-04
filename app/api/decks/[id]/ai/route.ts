@@ -12,7 +12,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (access.error) return access.error;
   if (access.deck.sourceType === "PPTX") return jsonError("PPTX 匯入的簡報為唯讀，無法使用 AI 編輯", 400);
   const ip = getClientIp(request);
-  if (!rateLimit(`deck-ai:${user.id}:${id}:${ip}`, 20, 60_000).allowed) return jsonError("AI 助理使用過於頻繁，請稍後再試", 429);
+  if (!(await rateLimit(`deck-ai:${user.id}:${id}:${ip}`, 20, 60_000)).allowed) return jsonError("AI 助理使用過於頻繁，請稍後再試", 429);
 
   const parsed = deckAiSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("AI 助理輸入不正確", 400, parsed.error.flatten());

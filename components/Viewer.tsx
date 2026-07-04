@@ -17,6 +17,9 @@ export function Viewer({ deckId, title, slides, exitHref, downloadHref, shareTok
   const stageRef = useRef<HTMLDivElement>(null);
   const laserRef = useRef<HTMLDivElement>(null);
   const startedAt = useRef(Date.now());
+  const currentSlide = slides[index];
+  const nextSlide = slides[index + 1];
+  const currentSlideOrder = currentSlide?.order;
   function go(next: number) { setIndex(Math.max(0, Math.min(slides.length - 1, next))); }
   function changeViewMode(mode: ViewMode) {
     setViewMode(mode);
@@ -43,12 +46,18 @@ export function Viewer({ deckId, title, slides, exitHref, downloadHref, shareTok
     return () => window.removeEventListener("keydown", key);
   }, [index, viewMode]);
   useEffect(() => {
-    const timer = window.setInterval(() => setElapsedSeconds(Math.floor((Date.now() - startedAt.current) / 1000)), 1000);
+    if (!presenterOpen) return;
+    const tick = () => setElapsedSeconds(Math.floor((Date.now() - startedAt.current) / 1000));
+    tick();
+    const timer = window.setInterval(tick, 1000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [presenterOpen]);
   useEffect(() => {
-    fetch(`/api/decks/${deckId}/view`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slideOrder: slides[index]?.order, shareToken }) });
-  }, [deckId, index, slides, shareToken]);
+    if (!currentSlideOrder) return;
+    const controller = new AbortController();
+    void fetch(`/api/decks/${deckId}/view`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slideOrder: currentSlideOrder, shareToken }), signal: controller.signal }).catch(() => undefined);
+    return () => controller.abort();
+  }, [deckId, currentSlideOrder, shareToken]);
   useEffect(() => {
     if (!laserEnabled && laserRef.current) laserRef.current.style.opacity = "0";
   }, [laserEnabled]);
@@ -66,8 +75,6 @@ export function Viewer({ deckId, title, slides, exitHref, downloadHref, shareTok
     const secs = (seconds % 60).toString().padStart(2, "0");
     return `${mins}:${secs}`;
   }
-  const currentSlide = slides[index];
-  const nextSlide = slides[index + 1];
   if (!slides.length) return <div className="viewer"><header className="viewer-head"><h1>{title}</h1><button className="btn secondary small" onClick={exitViewer}><LogOut size={16} />離開簡報</button></header><div className="empty">此簡報沒有投影片</div></div>;
   return (
     <div className={`viewer${laserEnabled && viewMode === "slide" ? " laser-active" : ""}`} onPointerMove={moveLaser} onPointerLeave={() => { if (laserRef.current) laserRef.current.style.opacity = "0"; }}>

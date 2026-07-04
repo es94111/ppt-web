@@ -239,7 +239,7 @@ export function Editor({ deck }: { deck: Deck }) {
                 </div>
                 {settingsVisibility === "PUBLIC" && <div className="field">
                   <label>{deck.hasPassword ? "更換密碼（留空則保留目前密碼）" : "公開簡報密碼（選填）"}</label>
-                  <input className="input" name="password" type="password" minLength={6} autoComplete="new-password" />
+                  <input className="input" name="password" type="password" minLength={10} autoComplete="new-password" />
                   <small className="muted">設定密碼後，簡報仍會出現在公開列表，但訪客必須先輸入密碼。</small>
                   {deck.hasPassword && <label><input name="removePassword" type="checkbox" /> 移除密碼保護</label>}
                 </div>}

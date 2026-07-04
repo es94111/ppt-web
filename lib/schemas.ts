@@ -39,11 +39,11 @@ export const brandKitSchema = z.object({
   font: z.enum(BRAND_FONT_VALUES).or(z.literal("")).optional(),
   footer: z.string().trim().max(120).optional(),
 }).strict();
-export const deckUpdateSchema = deckCreateSchema.partial().extend({ password: z.string().min(6).max(128).nullable().optional(), brand: brandKitSchema.optional() });
+export const deckUpdateSchema = deckCreateSchema.partial().extend({ password: z.string().min(10).max(128).nullable().optional(), brand: brandKitSchema.optional() });
 export const viewSchema = z.object({ slideOrder: z.number().int().min(1).max(10000).nullable().optional(), shareToken: z.string().min(8).max(200).optional() });
 export const shareLinkCreateSchema = z.object({
   label: z.string().trim().max(80).optional(),
-  password: z.string().min(6).max(128).optional().or(z.literal("")),
+  password: z.string().min(10).max(128).optional().or(z.literal("")),
   allowDownload: z.boolean().default(false),
   expiresAt: z.string().datetime().nullable().optional(),
 }).strict();

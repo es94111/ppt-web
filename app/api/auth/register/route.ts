@@ -7,7 +7,7 @@ import { registerSchema } from "@/lib/schemas";
 import { canCreatePublicAccount } from "@/lib/site-settings";
 
 export async function POST(request: NextRequest) {
-  const limit = rateLimit(`register:${getClientIp(request)}`, 5, 60_000);
+  const limit = await rateLimit(`register:${getClientIp(request)}`, 5, 60_000);
   if (!limit.allowed) return NextResponse.json({ error: "請稍後再試" }, { status: 429, headers: { "Retry-After": String(limit.retryAfter) } });
   const parsed = registerSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("輸入資料不正確", 400, parsed.error.flatten());

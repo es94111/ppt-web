@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brandKitSchema, deckAiSchema, registerSchema, slideContentSchema } from "./schemas";
+import { brandKitSchema, deckAiSchema, deckUpdateSchema, registerSchema, shareLinkCreateSchema, slideContentSchema } from "./schemas";
 import { generateDeckAiText } from "./ai-assistant";
 import { splitMarkdownSlides, joinSlidesToMarkdown, parseMarkdownDeck } from "./slides";
 import { rateLimit } from "./rate-limit";
@@ -41,6 +41,15 @@ describe("registerSchema", () =>
   it("enforces password complexity", () =>
     expect(registerSchema.safeParse({ name: "A", email: "a@example.com", password: "alllowercase1" }).success).toBe(false)));
 
+describe("password-protected sharing schemas", () => {
+  it("requires new deck and share passwords to be at least 10 characters", () => {
+    expect(deckUpdateSchema.safeParse({ password: "123456789" }).success).toBe(false);
+    expect(deckUpdateSchema.safeParse({ password: "1234567890" }).success).toBe(true);
+    expect(shareLinkCreateSchema.safeParse({ password: "123456789", allowDownload: false }).success).toBe(false);
+    expect(shareLinkCreateSchema.safeParse({ password: "1234567890", allowDownload: false }).success).toBe(true);
+  });
+});
+
 describe("brandKitSchema", () => {
   it("accepts safe brand settings", () =>
     expect(brandKitSchema.safeParse({ name: "Acme", logoUrl: "/logo.png", primaryColor: "#2563eb", accentColor: "#f59e0b", font: "display", footer: "Confidential" }).success).toBe(true));
@@ -81,11 +90,11 @@ describe("generateDeckAiText", () => {
 });
 
 describe("rateLimit", () =>
-  it("blocks requests beyond the limit", () => {
+  it("blocks requests beyond the limit", async () => {
     const key = `test-${Date.now()}`;
-    expect(rateLimit(key, 2).allowed).toBe(true);
-    expect(rateLimit(key, 2).allowed).toBe(true);
-    expect(rateLimit(key, 2).allowed).toBe(false);
+    expect((await rateLimit(key, 2)).allowed).toBe(true);
+    expect((await rateLimit(key, 2)).allowed).toBe(true);
+    expect((await rateLimit(key, 2)).allowed).toBe(false);
   }));
 
 function restoreEnv(key: string, value: string | undefined) {

@@ -13,8 +13,11 @@ export function createGoogleLinkToken(userId: string, ttlSeconds = 300) {
 
 export function verifyGoogleLinkToken(token?: string) {
   if (!token) return null;
-  const [userId, expires, supplied] = token.split(".");
-  if (!userId || !expires || !supplied || Number(expires) < Date.now()) return null;
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  const [userId, expires, supplied] = parts;
+  const expiresAt = Number(expires);
+  if (!userId || !expires || !supplied || !Number.isFinite(expiresAt) || expiresAt < Date.now()) return null;
   const expected = signature(`${userId}.${expires}`);
   const actualBytes = Buffer.from(supplied);
   const expectedBytes = Buffer.from(expected);

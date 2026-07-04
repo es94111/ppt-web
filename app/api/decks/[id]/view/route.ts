@@ -9,7 +9,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const user = await requireUser(); // 可為 null（匿名）
   const { id } = await params;
   const ip = getClientIp(request);
-  if (!rateLimit(`view:${user?.id ?? "anon"}:${id}:${ip}`, 120, 60_000).allowed) return jsonError("請求過於頻繁", 429);
+  if (!(await rateLimit(`view:${user?.id ?? "anon"}:${id}:${ip}`, 120, 60_000)).allowed) return jsonError("請求過於頻繁", 429);
   const parsed = viewSchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) return jsonError("頁碼不正確", 400);
   const deck = await db.deck.findUnique({ where: { id }, include: { collaborators: { where: { userId: user?.id ?? "__anonymous__" }, select: { role: true } } } });
