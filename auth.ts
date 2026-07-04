@@ -18,7 +18,7 @@ const providers = [
       const parsed = z.object({ email: z.string().email(), password: z.string().min(1) }).safeParse(raw);
       if (!parsed.success) return null;
       const ip=extractClientIp(request.headers,Number(process.env.TRUSTED_PROXY_COUNT??"1"));
-      if(!rateLimit(`login:${ip}:${parsed.data.email.toLowerCase()}`,10,60_000).allowed)return null;
+      if(!(await rateLimit(`login:${ip}:${parsed.data.email.toLowerCase()}`,10,60_000)).allowed)return null;
       const user = await db.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
       if (!user?.passwordHash || !user.isActive || !(await bcrypt.compare(parsed.data.password, user.passwordHash))) return null;
       return user;

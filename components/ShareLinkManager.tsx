@@ -47,7 +47,7 @@ export function ShareLinkManager({ deckId }: { deckId: string }) {
     <form className="manager-form" onSubmit={create}>
       <div className="field"><label>連結名稱</label><input className="input" name="label" maxLength={80} placeholder="例如：客戶提案" /></div>
       <div className="field"><label>到期時間</label><input className="input" name="expiresAt" type="datetime-local" /></div>
-      <div className="field"><label>分享密碼</label><input className="input" name="password" type="password" minLength={6} autoComplete="new-password" placeholder="選填" /></div>
+      <div className="field"><label>分享密碼</label><input className="input" name="password" type="password" minLength={10} autoComplete="new-password" placeholder="選填" /></div>
       <label className="check-row"><input name="allowDownload" type="checkbox" /> 允許下載 PDF</label>
       <button className="btn small"><Link2 size={15} />建立分享連結</button>
       {message && <p className={message.includes("失敗") ? "error" : "muted"}>{message}</p>}

@@ -218,6 +218,14 @@ model ViewLog {
   @@index([ipAddress])
 }
 
+model RateLimitBucket {
+  key       String   @id
+  count     Int
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+  @@index([resetAt])
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String

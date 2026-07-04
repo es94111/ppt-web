@@ -12,6 +12,7 @@ describe("Google account link token", () => {
   it("rejects tampered and expired tokens", () => {
     const token = createGoogleLinkToken("user-a", 60);
     expect(verifyGoogleLinkToken(`${token}x`)).toBeNull();
+    expect(verifyGoogleLinkToken(`${token}.extra`)).toBeNull();
     expect(verifyGoogleLinkToken(createGoogleLinkToken("user-a", -1))).toBeNull();
   });
 });
