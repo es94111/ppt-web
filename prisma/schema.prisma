@@ -71,6 +71,12 @@ model Deck {
   passwordHash String?
   coverImage   String?
   category     String?
+  brandName    String?
+  brandLogoUrl String?
+  brandPrimaryColor String?
+  brandAccentColor  String?
+  brandFont    String?
+  brandFooter  String?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   slides       Slide[]
@@ -126,6 +132,7 @@ model ShareLink {
   expiresAt     DateTime?
   revokedAt     DateTime?
   createdAt     DateTime  @default(now())
+  viewLogs      ViewLog[]
   @@index([deckId])
   @@index([token])
   @@index([expiresAt])
@@ -194,6 +201,8 @@ model ViewLog {
   id         String   @id @default(cuid())
   deckId     String
   deck       Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  shareLinkId String?
+  shareLink   ShareLink? @relation(fields: [shareLinkId], references: [id], onDelete: SetNull)
   userId     String?
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   slideOrder Int?
@@ -202,6 +211,8 @@ model ViewLog {
   referer    String?
   viewedAt   DateTime @default(now())
   @@index([deckId])
+  @@index([shareLinkId])
+  @@index([deckId, shareLinkId])
   @@index([userId])
   @@index([viewedAt])
   @@index([ipAddress])

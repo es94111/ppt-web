@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { getOwnedDeck, jsonError, requireUser } from "@/lib/http";
 import { createShareToken } from "@/lib/share-links";
+import { getShareLinkAnalytics } from "@/lib/share-analytics";
 import { shareLinkCreateSchema } from "@/lib/schemas";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -17,7 +18,8 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
     orderBy: { createdAt: "desc" },
     select: { id: true, token: true, label: true, allowDownload: true, expiresAt: true, revokedAt: true, createdAt: true, passwordHash: true },
   });
-  return NextResponse.json(links.map(({ passwordHash, ...link }) => ({ ...link, hasPassword: !!passwordHash })));
+  const analytics = await getShareLinkAnalytics(id, links.map((link) => link.id), await db.slide.count({ where: { deckId: id } }));
+  return NextResponse.json(links.map(({ passwordHash, ...link }) => ({ ...link, hasPassword: !!passwordHash, analytics: analytics.get(link.id) })));
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

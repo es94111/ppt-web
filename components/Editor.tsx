@@ -1,15 +1,18 @@
 "use client";
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3, FileDown, History, LayoutTemplate, MessageSquare, Play, RotateCcw, Settings2, Share2, Users, X } from "lucide-react";
+import { BarChart3, FileDown, History, LayoutTemplate, MessageSquare, Palette, Play, RotateCcw, Settings2, Share2, Users, WandSparkles, X } from "lucide-react";
+import { normalizeBrandKit, type BrandKit } from "@/lib/brand";
 import { SlideView } from "./SlideView";
+import { AIAssistant } from "./AIAssistant";
+import { BrandKitManager } from "./BrandKitManager";
 import { CollaboratorManager } from "./CollaboratorManager";
 import { CommentReview } from "./CommentReview";
 import { ShareLinkManager } from "./ShareLinkManager";
 import { splitMarkdownSlides, markdownToContent } from "@/lib/slides";
 import { slideTemplates } from "@/lib/slide-templates";
 
-type Deck = { id: string; title: string; description: string | null; visibility: string; hasPassword: boolean; initialMarkdown: string; category: string | null; tags: string[]; slides: { id: string; order: number }[]; canManage: boolean };
+type Deck = { id: string; title: string; description: string | null; visibility: string; hasPassword: boolean; initialMarkdown: string; category: string | null; tags: string[]; slides: { id: string; order: number }[]; canManage: boolean; brandKit: BrandKit };
 type Revision = { id: string; title: string; slideCount: number; createdAt: string; preview: string };
 
 export function Editor({ deck }: { deck: Deck }) {
@@ -17,6 +20,8 @@ export function Editor({ deck }: { deck: Deck }) {
   const [md, setMd] = useState(deck.initialMarkdown);
   const [state, setState] = useState("已儲存");
   const [showSettings, setShowSettings] = useState(false);
+  const [showAI, setShowAI] = useState(false);
+  const [showBrand, setShowBrand] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showRevisions, setShowRevisions] = useState(false);
   const [showShare, setShowShare] = useState(false);
@@ -25,6 +30,7 @@ export function Editor({ deck }: { deck: Deck }) {
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [revisionState, setRevisionState] = useState("");
   const [settingsVisibility, setSettingsVisibility] = useState(deck.visibility === "PASSWORD" ? "PUBLIC" : deck.visibility);
+  const [brandKit, setBrandKit] = useState(deck.brandKit);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -62,6 +68,37 @@ export function Editor({ deck }: { deck: Deck }) {
       textarea?.focus();
       const pos = before.length + prefix.length + markdown.length;
       textarea?.setSelectionRange(pos, pos);
+    });
+  }
+
+  function getSelectedText() {
+    const textarea = textareaRef.current;
+    if (!textarea) return "";
+    return md.slice(textarea.selectionStart, textarea.selectionEnd);
+  }
+
+  function applyAiText(text: string, mode: "replaceAll" | "replaceSelection" | "insert") {
+    const textarea = textareaRef.current;
+    const start = textarea?.selectionStart ?? md.length;
+    const end = textarea?.selectionEnd ?? md.length;
+    let next = text;
+    let cursor = text.length;
+    if (mode === "insert") {
+      const before = md.slice(0, start);
+      const after = md.slice(start);
+      const prefix = before.trim() ? "\n\n---\n\n" : "";
+      const suffix = after.trim() ? "\n\n---\n\n" : "";
+      next = `${before}${prefix}${text}${suffix}${after}`;
+      cursor = before.length + prefix.length + text.length;
+    } else if (mode === "replaceSelection" && start !== end) {
+      next = `${md.slice(0, start)}${text}${md.slice(end)}`;
+      cursor = start + text.length;
+    }
+    onChange(next);
+    setShowAI(false);
+    requestAnimationFrame(() => {
+      textarea?.focus();
+      textarea?.setSelectionRange(cursor, cursor);
     });
   }
 
@@ -113,13 +150,43 @@ export function Editor({ deck }: { deck: Deck }) {
     router.refresh();
   }
 
+  async function saveBrand(form: FormData) {
+    const clearBrand = form.get("clearBrand") === "on";
+    const brand = clearBrand ? {
+      name: "",
+      logoUrl: "",
+      primaryColor: "",
+      accentColor: "",
+      font: "",
+      footer: "",
+    } : {
+      name: String(form.get("brandName") || ""),
+      logoUrl: String(form.get("brandLogoUrl") || ""),
+      primaryColor: String(form.get("brandPrimaryColor") || ""),
+      accentColor: String(form.get("brandAccentColor") || ""),
+      font: String(form.get("brandFont") || ""),
+      footer: String(form.get("brandFooter") || ""),
+    };
+    const response = await fetch(`/api/decks/${deck.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ brand }),
+    });
+    if (!response.ok) { alert((await response.json()).error); return; }
+    setBrandKit(normalizeBrandKit({ ...brand, font: brand.font as BrandKit["font"] }));
+    setShowBrand(false);
+    router.refresh();
+  }
+
   return (
     <div className="md-editor">
       <header className="md-toolbar">
         <strong className="md-title">{deck.title}</strong>
         <span className="md-hint"><code>---</code> 分頁 · <code>???</code> 講者備註</span>
         <span className="save-state">{state}</span>
+        <button className="btn secondary small" onClick={() => setShowAI(true)}><WandSparkles size={15} />AI</button>
         <button className="btn secondary small" onClick={() => setShowTemplates(true)}><LayoutTemplate size={15} />範本</button>
+        {deck.canManage && <button className="btn secondary small" onClick={() => setShowBrand(true)}><Palette size={15} />品牌</button>}
         {deck.canManage && <button className="btn secondary small" onClick={() => setShowShare(true)}><Share2 size={15} />分享</button>}
         {deck.canManage && <button className="btn secondary small" onClick={() => setShowCollaborators(true)}><Users size={15} />協作者</button>}
         <button className="btn secondary small" onClick={() => setShowComments(true)}><MessageSquare size={15} />留言</button>
@@ -145,7 +212,7 @@ export function Editor({ deck }: { deck: Deck }) {
           {slides.map((s, i) => (
             <div className="md-preview-item" key={i}>
               <span className="md-preview-num">{i + 1}</span>
-              <div className="md-preview-frame"><SlideView content={markdownToContent(s)} /></div>
+              <div className="md-preview-frame"><SlideView content={markdownToContent(s)} brandKit={brandKit} /></div>
             </div>
           ))}
         </section>
@@ -179,6 +246,24 @@ export function Editor({ deck }: { deck: Deck }) {
               </>}
               <div className="actions"><button className="btn small">儲存設定</button></div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showAI && (
+        <div className="modal-backdrop" onMouseDown={() => setShowAI(false)}>
+          <div className="modal modal-ai" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="modal-head"><h2>AI 簡報助理</h2><button className="icon-btn" onClick={() => setShowAI(false)}><X size={18} /></button></div>
+            <AIAssistant deckId={deck.id} markdown={md} getSelectedText={getSelectedText} onApply={applyAiText} />
+          </div>
+        </div>
+      )}
+
+      {showBrand && (
+        <div className="modal-backdrop" onMouseDown={() => setShowBrand(false)}>
+          <div className="modal modal-wide" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="modal-head"><h2>品牌套件</h2><button className="icon-btn" onClick={() => setShowBrand(false)}><X size={18} /></button></div>
+            <BrandKitManager brandKit={brandKit} onSave={saveBrand} />
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { brandKitFromDeck } from "@/lib/brand";
 import { PrintButton } from "@/components/PrintButton";
 import { SlideView } from "@/components/SlideView";
 import "@/app/export.css";
@@ -26,7 +27,7 @@ export default async function PdfExportPage({ params }: { params: Promise<{ id: 
         </div>
       </div>
       <section className="print-deck">
-        {deck.slides.map((slide) => <article className="print-slide" key={slide.id}><SlideView content={slide.content} /></article>)}
+        {deck.slides.map((slide) => <article className="print-slide" key={slide.id}><SlideView content={slide.content} brandKit={brandKitFromDeck(deck)} /></article>)}
       </section>
     </main>
   );

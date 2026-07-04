@@ -2,11 +2,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Clock, Crosshair, Download, LayoutGrid, LogOut, Maximize2, Monitor, StickyNote, X } from "lucide-react";
+import type { BrandKit } from "@/lib/brand";
 import { SlideView } from "./SlideView";
 
 type Slide = { id: string; order: number; content: unknown; notes?: string | null };
 type ViewMode = "slide" | "overview";
-export function Viewer({ deckId, title, slides, exitHref, downloadHref }: { deckId: string; title: string; slides: Slide[]; exitHref: string; downloadHref?: string }) {
+export function Viewer({ deckId, title, slides, exitHref, downloadHref, shareToken, brandKit }: { deckId: string; title: string; slides: Slide[]; exitHref: string; downloadHref?: string; shareToken?: string; brandKit?: BrandKit | null }) {
   const router = useRouter();
   const [index, setIndex] = useState(0);
   const [laserEnabled, setLaserEnabled] = useState(false);
@@ -46,8 +47,8 @@ export function Viewer({ deckId, title, slides, exitHref, downloadHref }: { deck
     return () => window.clearInterval(timer);
   }, []);
   useEffect(() => {
-    fetch(`/api/decks/${deckId}/view`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slideOrder: slides[index]?.order }) });
-  }, [deckId, index, slides]);
+    fetch(`/api/decks/${deckId}/view`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slideOrder: slides[index]?.order, shareToken }) });
+  }, [deckId, index, slides, shareToken]);
   useEffect(() => {
     if (!laserEnabled && laserRef.current) laserRef.current.style.opacity = "0";
   }, [laserEnabled]);
@@ -73,8 +74,8 @@ export function Viewer({ deckId, title, slides, exitHref, downloadHref }: { deck
       <header className="viewer-head"><h1>{title}</h1><div className="viewer-head-actions"><span className="muted">唯讀模式</span>{downloadHref && <a className="btn secondary small" href={downloadHref} target="_blank"><Download size={16} />PDF</a>}<button className="btn secondary small" onClick={exitViewer}><LogOut size={16} />離開簡報</button></div></header>
       {viewMode === "slide" && <><button aria-label="上一頁" className="click-zone left" onClick={() => go(index - 1)} /><button aria-label="下一頁" className="click-zone right" onClick={() => go(index + 1)} /></>}
       <div className={`viewer-stage${viewMode === "overview" ? " overview" : ""}`} ref={stageRef}>
-        {viewMode === "slide" ? <div className="viewer-canvas"><SlideView key={index} content={slides[index].content} animate /></div> : <div className="overview-grid">
-          {slides.map((slide, slideIndex) => <button className={`overview-slide${slideIndex === index ? " selected" : ""}`} key={slide.id} onClick={() => { setIndex(slideIndex); changeViewMode("slide"); }}><SlideView content={slide.content} /><span>{slideIndex + 1}</span></button>)}
+        {viewMode === "slide" ? <div className="viewer-canvas"><SlideView key={index} content={slides[index].content} animate brandKit={brandKit} /></div> : <div className="overview-grid">
+          {slides.map((slide, slideIndex) => <button className={`overview-slide${slideIndex === index ? " selected" : ""}`} key={slide.id} onClick={() => { setIndex(slideIndex); changeViewMode("slide"); }}><SlideView content={slide.content} brandKit={brandKit} /><span>{slideIndex + 1}</span></button>)}
         </div>}
       </div>
       <footer className="viewer-controls">
@@ -106,7 +107,7 @@ export function Viewer({ deckId, title, slides, exitHref, downloadHref }: { deck
             </article>
             <article className="presenter-next">
               <h3>下一頁預覽</h3>
-              {nextSlide ? <SlideView content={nextSlide.content} /> : <div className="presenter-end">已是最後一頁</div>}
+              {nextSlide ? <SlideView content={nextSlide.content} brandKit={brandKit} /> : <div className="presenter-end">已是最後一頁</div>}
             </article>
           </div>
           <footer className="presenter-actions">
