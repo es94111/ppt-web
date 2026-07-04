@@ -10,16 +10,18 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
   const session = await auth();
   if (!session?.user) redirect("/login");
   const { id } = await params;
-  const deck = await db.deck.findUnique({ where: { id }, include: { slides: { orderBy: { order: "asc" } } } });
+  const deck = await db.deck.findUnique({ where: { id }, include: { slides: { orderBy: { order: "asc" } }, collaborators: { where: { userId: session.user.id }, select: { role: true } }, tags: { include: { tag: true } } } });
   if (!deck) notFound();
-  if (session.user.role !== "ADMIN" && deck.ownerId !== session.user.id) redirect("/dashboard");
+  const canEdit = session.user.role === "ADMIN" || deck.ownerId === session.user.id || deck.collaborators[0]?.role === "EDITOR";
+  const canManage = session.user.role === "ADMIN" || deck.ownerId === session.user.id;
+  if (!canEdit) redirect("/dashboard");
   if (session.user.role === "GUEST") redirect(`/d/${id}`);
   // PPTX 匯入的簡報為唯讀，沒有編輯器，導向播放器
   if (deck.sourceType === "PPTX") redirect(`/d/${id}`);
-  const initialMarkdown = joinSlidesToMarkdown(deck.slides.map((s) => s.content));
+  const initialMarkdown = joinSlidesToMarkdown(deck.slides);
   return (
     <main>
-      <Editor deck={{ id: deck.id, title: deck.title, description: deck.description, visibility: deck.visibility, hasPassword: !!deck.passwordHash, initialMarkdown }} />
+      <Editor deck={{ id: deck.id, title: deck.title, description: deck.description, visibility: deck.visibility, hasPassword: !!deck.passwordHash, initialMarkdown, category: deck.category, tags: deck.tags.map((item) => item.tag.name), slides: deck.slides.map((slide) => ({ id: slide.id, order: slide.order })), canManage }} />
     </main>
   );
 }

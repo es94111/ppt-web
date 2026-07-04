@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { renderMarkdown } from "@/lib/markdown";
+import { useEffect, useRef, useState } from "react";
+import { enhanceMarkdown, renderMarkdown } from "@/lib/markdown";
 import type { SlideContent } from "@/lib/schemas";
 
 // 渲染單張投影片：Markdown（消毒後 HTML）或 圖片（PPTX 轉出）。
@@ -9,8 +9,10 @@ export function SlideView({ content, animate = false }: { content: unknown; anim
   const c = content as SlideContent | undefined;
   const markdown = c?.kind === "markdown" ? c.markdown : "";
   const [html, setHtml] = useState("");
+  const mdRef = useRef<HTMLDivElement>(null);
   // 於 client 端渲染並消毒，避免伺服器端 hydration 不一致
   useEffect(() => { setHtml(renderMarkdown(markdown)); }, [markdown]);
+  useEffect(() => { void enhanceMarkdown(mdRef.current); }, [html]);
 
   const base = `slide-surface${animate ? " slide-animate" : ""}`;
   if (c?.kind === "image") {
@@ -22,7 +24,7 @@ export function SlideView({ content, animate = false }: { content: unknown; anim
   }
   return (
     <div className={base}>
-      <div className="slide-md" dangerouslySetInnerHTML={{ __html: html }} />
+      <div className="slide-md" ref={mdRef} dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   );
 }

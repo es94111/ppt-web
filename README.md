@@ -1,6 +1,6 @@
 # SlideForge
 
-![version](https://img.shields.io/badge/version-1.7.1-blue)
+![version](https://img.shields.io/badge/version-2.0.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-blue)
 
@@ -33,14 +33,22 @@
 
 - **線上瀏覽**：逐頁播放簡報，支援上一頁／下一頁、鍵盤左右鍵、頁碼指示與全螢幕。
 - **Markdown 編輯**：在瀏覽器內用 Markdown 撰寫投影片，左側輸入、右側即時預覽，以單獨一行的 `---` 分頁。
+- **講者備註 + Presenter Mode**：每頁可用獨立一行的 `???` 撰寫講者備註；播放時可開啟講者模式，查看講稿、下一頁預覽、計時器與目前頁數。
+- **範本/版型庫**：編輯器內建封面、議程、數據、雙欄比較、課程章節、結尾行動等常用版型，可直接插入 Markdown。
+- **版本歷史 / 還原**：自動儲存前會定期保留 Markdown 快照，編輯器可查看最近版本並一鍵還原。
+- **Markdown 增強**：支援 Mermaid 圖表、KaTeX 數學式與程式碼高亮，適合技術提案、課程與研究簡報。
 - **精美主題 + 動畫**：用一組安全的版面標籤（`s-*`）做出深色/淺色主題、漸層標題、數據卡、多欄等旗艦級版面；播放時投影片淡入、內容逐項浮現（尊重 reduced-motion）。撰寫說明與範例見 [`docs/examples/`](docs/examples/)。
 - **上傳匯入**：上傳 `.md` Markdown 檔匯入成可編輯簡報；上傳 `.pptx` 經 LibreOffice 轉成每頁圖片供唯讀瀏覽。
+- **PDF 匯出**：擁有者/Admin 可開啟列印最佳化的 PDF 匯出頁，將每張投影片以 16:9 橫向頁面另存為 PDF。
 - **公開藝廊（首頁）**：首頁 `/` 即公開簡報藝廊，可瀏覽全站公開簡報，支援關鍵字搜尋與最新／最熱門排序（舊路徑 `/explore` 自動轉址至首頁）。
+- **標籤、分類、作者頁與收藏**：公開藝廊可依標籤/分類篩選，作者頁彙整個人公開簡報，登入者可收藏公開簡報。
+- **分享連結管理**：每份簡報可建立多組分享連結，設定到期時間、分享密碼、是否允許 PDF 下載，並可隨時撤銷。
+- **協作者與留言審閱**：擁有者/Admin 可加入 viewer/commenter/editor 協作者；投影片支援留言、解決與重開狀態。
 - **匿名瀏覽**：公開簡報與首頁公開藝廊**未登入即可觀看**；私人與密碼簡報仍需登入或密碼。
 - **三種角色**：管理員（Admin）、使用者（User）、訪客（Guest）。首位以 Email 註冊者自動成為 Admin。
 - **角色管理**：Admin 可在後台指派任意帳號為 User／Guest／Admin，並啟用或停用帳號。
 - **簡報密碼保護**：每份簡報可設定獨立瀏覽密碼，並支援私人／需密碼／公開／不公開列出等可見性。
-- **瀏覽稽核**：記錄誰、在何時、從哪個 IP 位址、瀏覽了哪份簡報的第幾頁（匿名瀏覽記為訪客 + IP）。Admin 可查看全站、User 可查看自己簡報的記錄。
+- **瀏覽稽核 + 成效分析**：記錄誰、在何時、從哪個 IP 位址、瀏覽了哪份簡報的第幾頁（匿名瀏覽記為訪客 + IP）。Admin 可查看全站、User 可查看自己簡報的記錄；單份簡報提供趨勢、唯一訪客、熱門投影片、流失頁與來源統計。
 - **雙重登入**：Email + 密碼，或 Google OAuth。
 - **資安內建**：密碼雜湊、後端強制授權、輸入驗證、Markdown 輸出消毒（DOMPurify）、速率限制（詳見 [安全性](#安全性)）。
 
@@ -218,9 +226,18 @@ docker run -d -p 3000:3000 \
 | `/login` `/register` | 登入註冊 |
 | `/dashboard` | 我的簡報（建立／管理） |
 | `/decks/[id]/edit` | 投影片編輯器 |
+| `/decks/[id]/export/pdf` | 列印最佳化 PDF 匯出 |
+| `/decks/[id]/logs` | 單份簡報瀏覽成效分析 |
 | `/d/[id]` | 瀏覽播放器 |
+| `/s/[token]` | 分享連結播放器 |
+| `/authors/[id]` | 作者公開簡報頁 |
 | `/admin/users` `/admin/logs` | 使用者管理、全站稽核 |
 | `/api/decks/**` | 簡報與投影片 CRUD、密碼驗證、瀏覽記錄 |
+| `/api/decks/[id]/revisions/**` | Markdown 版本歷史與還原 |
+| `/api/decks/[id]/share-links/**` | 分享連結建立、列表、撤銷 |
+| `/api/decks/[id]/collaborators/**` | 協作者管理 |
+| `/api/decks/[id]/comments/**` | 投影片留言與解決狀態 |
+| `/api/decks/[id]/favorite` | 收藏/取消收藏 |
 | `/api/admin/**` | 角色／狀態管理、稽核查詢 |
 | `/api/uploads/image` | 圖片 presigned upload |
 

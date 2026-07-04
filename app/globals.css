@@ -80,6 +80,7 @@ main{min-height:calc(100vh - 66px)}
 .deck-body{padding:18px}
 .deck-meta{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:var(--fs-xs);font-variant-numeric:tabular-nums}
 .deck-body h3{font-size:var(--fs-md);margin:10px 0 4px;letter-spacing:-.02em}
+.deck-author a{color:var(--brand);font-weight:600}.tag-row{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.tag-chip{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:2px 9px;font-size:var(--fs-xs);color:var(--brand-ink);font-weight:600}.favorite-btn.active{background:#fff7dd;border-color:#f4c152;color:#9a5b00}
 
 /* 徽章 */
 .badge{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:3px 10px;background:var(--brand-soft);color:var(--brand-ink);font-weight:600;font-size:var(--fs-xs)}
@@ -129,6 +130,21 @@ tbody tr:hover td{background:var(--bg-2)}
 .truncate-cell{max-width:280px;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:580px){.grid{grid-template-columns:1fr}.section-head{align-items:start;flex-direction:column}.hero h1{font-size:44px}.nav-links{gap:12px}.container{width:min(100% - 28px,1200px)}}
 
+/* 成效分析 */
+.analytics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.metric-card,.analytics-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-sm)}
+.metric-card{padding:18px}.metric-card span,.metric-card small{display:block;color:var(--muted);font-size:var(--fs-xs)}.metric-card strong{display:block;margin:6px 0 2px;font-family:var(--font-display);font-size:var(--fs-xl);letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--text)}
+.analytics-panels{display:grid;grid-template-columns:2fr 1fr 1fr;gap:18px;margin-bottom:24px}
+.analytics-panel{padding:18px}.analytics-panel h2{font-size:var(--fs-md);margin:0 0 14px}
+.trend-chart{height:190px;display:grid;grid-template-columns:repeat(14,1fr);gap:8px;align-items:end}
+.trend-day{height:100%;display:grid;grid-template-rows:1fr auto auto;gap:5px;text-align:center;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.trend-day div{align-self:end;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--brand),var(--violet));min-height:4px}
+.trend-day strong{color:var(--text);font-size:11px}
+.rank-list{display:grid;gap:10px}.rank-row{display:grid;grid-template-columns:58px 1fr 34px;gap:8px;align-items:center;font-size:var(--fs-sm)}.rank-row div{height:8px;background:var(--bg-2);border-radius:99px;overflow:hidden}.rank-row i{display:block;height:100%;background:var(--brand);border-radius:99px}.rank-row strong{text-align:right;font-variant-numeric:tabular-nums}
+.source-list{display:grid;gap:10px}.source-list div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px}.source-list div:last-child{border-bottom:0}.source-list span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.source-list strong{font-variant-numeric:tabular-nums}
+@media(max-width:900px){.analytics-grid{grid-template-columns:repeat(2,1fr)}.analytics-panels{grid-template-columns:1fr}.trend-panel{overflow:auto}.trend-chart{min-width:620px}}
+@media(max-width:580px){.analytics-grid{grid-template-columns:1fr}}
+
 /* 投影片渲染（Markdown / 圖片）— 編輯器預覽與播放器共用 */
 .slide-surface{position:relative;width:100%;aspect-ratio:16/9;background:#fff;overflow:hidden;container-type:inline-size}
 .slide-surface-image{display:flex;align-items:center;justify-content:center}
@@ -146,6 +162,7 @@ tbody tr:hover td{background:var(--bg-2)}
 .slide-md code{background:#f0eff7;border-radius:4px;padding:.1em .35em;font-size:.9em;font-family:var(--font-mono)}
 .slide-md pre{background:#1b1c28;color:#e7e7f3;padding:1em;border-radius:8px;overflow:auto;font-size:.85em}
 .slide-md pre code{background:transparent;padding:0;color:inherit}
+.slide-md .katex-display{margin:.6em 0;overflow:auto}.slide-md .katex{font-size:1em}.slide-md .mermaid{display:grid;place-items:center;background:#fff;border-radius:8px;padding:.5em;overflow:auto}.slide-md .mermaid svg{max-width:100%;height:auto}
 .slide-md img{max-width:100%;border-radius:6px}
 .slide-md blockquote{margin:.6em 0;padding-left:.8em;border-left:4px solid var(--brand);color:#4a4d5e}
 .slide-md table{border-collapse:collapse;width:100%;font-size:.9em}

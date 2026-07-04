@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { registerSchema, slideContentSchema } from "./schemas";
-import { splitMarkdownSlides, joinSlidesToMarkdown } from "./slides";
+import { splitMarkdownSlides, joinSlidesToMarkdown, parseMarkdownDeck } from "./slides";
 import { rateLimit } from "./rate-limit";
 
 describe("slideContentSchema", () => {
@@ -23,6 +23,16 @@ describe("splitMarkdownSlides", () => {
     const parts = splitMarkdownSlides("# one\n\n---\n\n## two");
     const joined = joinSlidesToMarkdown(parts.map((m) => ({ kind: "markdown", markdown: m })));
     expect(splitMarkdownSlides(joined)).toEqual(parts);
+  });
+  it("extracts speaker notes with standalone ???", () => {
+    expect(parseMarkdownDeck("# one\n\n???\nread this\n\n---\n\n## two")).toEqual([
+      { markdown: "# one", notes: "read this" },
+      { markdown: "## two", notes: null },
+    ]);
+  });
+  it("round-trips notes through join", () => {
+    const joined = joinSlidesToMarkdown([{ content: { kind: "markdown", markdown: "# one" }, notes: "talk track" }]);
+    expect(parseMarkdownDeck(joined)).toEqual([{ markdown: "# one", notes: "talk track" }]);
   });
 });
 

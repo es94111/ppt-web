@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { auth, signOut } from "@/auth";
 import { Presentation } from "lucide-react";
+import "highlight.js/styles/github-dark.css";
+import "katex/dist/katex.min.css";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });

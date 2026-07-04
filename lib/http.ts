@@ -18,10 +18,32 @@ export async function requireUser() {
 }
 
 export async function getEditableDeck(deckId: string, user: { id: string; role: string }) {
+  const deck = await db.deck.findUnique({ where: { id: deckId }, include: { collaborators: { where: { userId: user.id }, select: { role: true } } } });
+  if (!deck) return { error: jsonError("找不到簡報", 404) };
+  const collaboratorRole = deck.collaborators[0]?.role;
+  if (user.role !== "ADMIN" && deck.ownerId !== user.id && collaboratorRole !== "EDITOR") return { error: jsonError("沒有權限", 403) };
+  return { deck };
+}
+
+export async function getOwnedDeck(deckId: string, user: { id: string; role: string }) {
   const deck = await db.deck.findUnique({ where: { id: deckId } });
   if (!deck) return { error: jsonError("找不到簡報", 404) };
   if (user.role !== "ADMIN" && deck.ownerId !== user.id) return { error: jsonError("沒有權限", 403) };
   return { deck };
+}
+
+export async function getDeckCollaboration(deckId: string, user: { id: string; role: string }) {
+  const deck = await db.deck.findUnique({
+    where: { id: deckId },
+    include: { collaborators: { where: { userId: user.id }, select: { role: true } } },
+  });
+  if (!deck) return { error: jsonError("找不到簡報", 404) };
+  const owns = user.role === "ADMIN" || deck.ownerId === user.id;
+  return { deck, owns, role: owns ? "EDITOR" : deck.collaborators[0]?.role ?? null };
+}
+
+export function canComment(role: string | null | undefined) {
+  return role === "EDITOR" || role === "COMMENTER";
 }
 
 export function hasDeckCookie(request: NextRequest, deckId: string) {

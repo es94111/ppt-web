@@ -31,6 +31,12 @@ enum DeckStatus {
   FAILED
 }
 
+enum CollaboratorRole {
+  VIEWER
+  COMMENTER
+  EDITOR
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -44,6 +50,10 @@ model User {
   updatedAt     DateTime  @updatedAt
   decks         Deck[]
   viewLogs      ViewLog[]
+  collaborators DeckCollaborator[]
+  comments      SlideComment[]
+  favorites     Favorite[]
+  shareLinks    ShareLink[]
   accounts      Account[]
   sessions      Session[]
 }
@@ -60,12 +70,33 @@ model Deck {
   sourceFile   String?
   passwordHash String?
   coverImage   String?
+  category     String?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   slides       Slide[]
   viewLogs     ViewLog[]
+  revisions    DeckRevision[]
+  shareLinks   ShareLink[]
+  collaborators DeckCollaborator[]
+  comments     SlideComment[]
+  tags         DeckTag[]
+  favorites    Favorite[]
   @@index([ownerId])
   @@index([visibility])
+  @@index([category])
+}
+
+model DeckRevision {
+  id         String   @id @default(cuid())
+  deckId     String
+  deck       Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  authorId   String?
+  title      String
+  markdown   String
+  slideCount Int
+  createdAt  DateTime @default(now())
+  @@index([deckId])
+  @@index([createdAt])
 }
 
 model Slide {
@@ -77,7 +108,85 @@ model Slide {
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  comments  SlideComment[]
   @@unique([deckId, order])
+  @@index([deckId])
+}
+
+model ShareLink {
+  id            String    @id @default(cuid())
+  token         String    @unique
+  deckId        String
+  deck          Deck      @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  createdById   String?
+  createdBy     User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  label         String?
+  passwordHash  String?
+  allowDownload Boolean   @default(false)
+  expiresAt     DateTime?
+  revokedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  @@index([deckId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model DeckCollaborator {
+  id        String           @id @default(cuid())
+  deckId    String
+  deck      Deck             @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      CollaboratorRole @default(VIEWER)
+  createdAt DateTime         @default(now())
+  @@unique([deckId, userId])
+  @@index([userId])
+}
+
+model SlideComment {
+  id           String   @id @default(cuid())
+  deckId       String
+  deck         Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  slideId      String
+  slide        Slide    @relation(fields: [slideId], references: [id], onDelete: Cascade)
+  authorId     String?
+  author       User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  body         String
+  resolvedAt   DateTime?
+  resolvedById String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@index([deckId])
+  @@index([slideId])
+  @@index([authorId])
+  @@index([resolvedAt])
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  decks     DeckTag[]
+}
+
+model DeckTag {
+  deckId String
+  deck   Deck   @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  tagId  String
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([deckId, tagId])
+  @@index([tagId])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deckId    String
+  deck      Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([userId, deckId])
   @@index([deckId])
 }
 
