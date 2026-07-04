@@ -136,6 +136,8 @@ tbody tr:hover td{background:var(--bg-2)}
 .metric-card{padding:18px}.metric-card span,.metric-card small{display:block;color:var(--muted);font-size:var(--fs-xs)}.metric-card strong{display:block;margin:6px 0 2px;font-family:var(--font-display);font-size:var(--fs-xl);letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--text)}
 .analytics-panels{display:grid;grid-template-columns:2fr 1fr 1fr;gap:18px;margin-bottom:24px}
 .analytics-panel{padding:18px}.analytics-panel h2{font-size:var(--fs-md);margin:0 0 14px}
+.analytics-subhead{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:8px 0 12px}.analytics-subhead h2{font-size:var(--fs-md);margin:0}.analytics-subhead p{margin:0}
+.link-analytics-table{margin-bottom:24px}
 .trend-chart{height:190px;display:grid;grid-template-columns:repeat(14,1fr);gap:8px;align-items:end}
 .trend-day{height:100%;display:grid;grid-template-rows:1fr auto auto;gap:5px;text-align:center;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
 .trend-day div{align-self:end;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--brand),var(--violet));min-height:4px}
@@ -168,6 +170,14 @@ tbody tr:hover td{background:var(--bg-2)}
 .slide-md table{border-collapse:collapse;width:100%;font-size:.9em}
 .slide-md th,.slide-md td{border:1px solid #d9dbe5;padding:.4em .6em;text-align:left}
 .slide-md hr{border:0;border-top:1px solid var(--line);margin:.8em 0}
+.slide-surface.branded .slide-md{font-family:var(--deck-brand-font);padding-bottom:8cqw}
+.slide-surface.branded .slide-md h1,.slide-surface.branded .slide-md h2{color:var(--deck-brand-primary)}
+.slide-surface.branded .slide-md a{color:var(--deck-brand-primary)}
+.slide-surface.branded .slide-md blockquote{border-left-color:var(--deck-brand-accent);background:#fff8ea;color:#473715;border-radius:0 6px 6px 0}
+.slide-surface.branded .slide-md code{background:#eef6ff;color:var(--deck-brand-primary)}
+.slide-brand-logo{position:absolute;right:4cqw;top:3.5cqw;max-width:16cqw;max-height:7cqw;object-fit:contain;z-index:6}
+.slide-brand-footer{position:absolute;left:7cqw;right:7cqw;bottom:3.2cqw;z-index:6;border-top:1px solid var(--deck-brand-accent);padding-top:1cqw;font-family:var(--deck-brand-font);font-size:1.15cqw;line-height:1.2;color:var(--deck-brand-primary);display:flex;justify-content:space-between;gap:1cqw;pointer-events:none}
+.slide-brand-footer span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* 設定彈窗標題列 */
 .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}

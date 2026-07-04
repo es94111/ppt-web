@@ -2,7 +2,8 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { Copy, ExternalLink, Link2, RotateCcw } from "lucide-react";
 
-type ShareLink = { id: string; token: string; label: string | null; allowDownload: boolean; expiresAt: string | null; revokedAt: string | null; createdAt: string; hasPassword: boolean };
+type LinkAnalytics = { viewCount: number; uniqueVisitors: number; completionRate: number; dropOffSlide: number | null; dropOffCount: number; lastViewedAt: string | null };
+type ShareLink = { id: string; token: string; label: string | null; allowDownload: boolean; expiresAt: string | null; revokedAt: string | null; createdAt: string; hasPassword: boolean; analytics?: LinkAnalytics };
 
 export function ShareLinkManager({ deckId }: { deckId: string }) {
   const [links, setLinks] = useState<ShareLink[]>([]);
@@ -56,6 +57,12 @@ export function ShareLinkManager({ deckId }: { deckId: string }) {
         const active = !link.revokedAt && (!link.expiresAt || new Date(link.expiresAt).getTime() > Date.now());
         return <article className="manager-item" key={link.id}>
           <div><strong>{link.label || "未命名連結"}</strong><p className="muted">{active ? "有效" : "已失效"} · {link.hasPassword ? "有密碼" : "無密碼"} · {link.allowDownload ? "可下載" : "不可下載"}{link.expiresAt ? ` · 到期 ${new Date(link.expiresAt).toLocaleString("zh-TW")}` : ""}</p></div>
+          <div className="share-metrics">
+            <span><b>{link.analytics?.viewCount ?? 0}</b>觀看</span>
+            <span><b>{link.analytics?.uniqueVisitors ?? 0}</b>訪客</span>
+            <span><b>{link.analytics?.completionRate ?? 0}%</b>完成</span>
+            <span><b>{link.analytics?.dropOffSlide ? `第 ${link.analytics.dropOffSlide} 頁後` : "無"}</b>流失</span>
+          </div>
           <div className="manager-actions"><a className="btn secondary small" href={`/s/${link.token}`} target="_blank"><ExternalLink size={14} /></a><button className="btn secondary small" onClick={() => navigator.clipboard.writeText(shareUrl(link.token))}><Copy size={14} /></button><button className="btn secondary small" disabled={!active} onClick={() => revoke(link.id)}><RotateCcw size={14} />撤銷</button></div>
         </article>;
       }) : <div className="empty compact">尚未建立分享連結</div>}

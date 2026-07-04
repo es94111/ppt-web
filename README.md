@@ -1,6 +1,6 @@
 # SlideForge
 
-![version](https://img.shields.io/badge/version-2.0.1-blue)
+![version](https://img.shields.io/badge/version-2.1.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-blue)
 
@@ -33,7 +33,11 @@
 
 - **線上瀏覽**：逐頁播放簡報，支援上一頁／下一頁、鍵盤左右鍵、頁碼指示與全螢幕。
 - **Markdown 編輯**：在瀏覽器內用 Markdown 撰寫投影片，左側輸入、右側即時預覽，以單獨一行的 `---` 分頁。
+- **AI 簡報助理**：在編輯器輸入主題或貼上長文，即可產生 Markdown 投影片草稿；若未設定外部模型，系統仍會提供本機結構化草稿。
+- **AI 改寫、濃縮與語氣調整**：可針對選取文字或整份簡報一鍵改寫、縮短，或調整成指定聽眾與語氣。
+- **AI 講者備註產生**：可根據每頁內容自動補上 `???` 講稿，並沿用 Presenter Mode 顯示。
 - **講者備註 + Presenter Mode**：每頁可用獨立一行的 `???` 撰寫講者備註；播放時可開啟講者模式，查看講稿、下一頁預覽、計時器與目前頁數。
+- **品牌套件 / 主題管理**：擁有者可設定品牌名稱、Logo、主色、強調色、字體與頁尾，編輯預覽、播放與 PDF 匯出會一致套用。
 - **範本/版型庫**：編輯器內建封面、議程、數據、雙欄比較、課程章節、結尾行動等常用版型，可直接插入 Markdown。
 - **版本歷史 / 還原**：自動儲存前會定期保留 Markdown 快照，編輯器可查看最近版本並一鍵還原。
 - **Markdown 增強**：支援 Mermaid 圖表、KaTeX 數學式與程式碼高亮，適合技術提案、課程與研究簡報。
@@ -42,7 +46,7 @@
 - **PDF 匯出**：擁有者/Admin 可開啟列印最佳化的 PDF 匯出頁，將每張投影片以 16:9 橫向頁面另存為 PDF。
 - **公開藝廊（首頁）**：首頁 `/` 即公開簡報藝廊，可瀏覽全站公開簡報，支援關鍵字搜尋與最新／最熱門排序（舊路徑 `/explore` 自動轉址至首頁）。
 - **標籤、分類、作者頁與收藏**：公開藝廊可依標籤/分類篩選，作者頁彙整個人公開簡報，登入者可收藏公開簡報。
-- **分享連結管理**：每份簡報可建立多組分享連結，設定到期時間、分享密碼、是否允許 PDF 下載，並可隨時撤銷。
+- **分享連結管理 + 成效分析**：每份簡報可建立多組分享連結，設定到期時間、分享密碼、是否允許 PDF 下載，並可隨時撤銷；每組連結會顯示觀看次數、唯一訪客、完成率與流失頁。
 - **協作者與留言審閱**：擁有者/Admin 可加入 viewer/commenter/editor 協作者；投影片支援留言、解決與重開狀態。
 - **匿名瀏覽**：公開簡報與首頁公開藝廊**未登入即可觀看**；私人與密碼簡報仍需登入或密碼。
 - **三種角色**：管理員（Admin）、使用者（User）、訪客（Guest）。首位以 Email 註冊者自動成為 Admin。
@@ -138,6 +142,9 @@ npm run dev              # http://localhost:3000
 | `S3_ACCESS_KEY` | — | 存取金鑰 |
 | `S3_SECRET_KEY` | — | 私密金鑰 |
 | `S3_PUBLIC_URL` | — | 圖片對外存取的基底 URL |
+| `AI_API_KEY` | — | AI 簡報助理使用的 OpenAI-compatible API key；未設定時改用本機 fallback |
+| `AI_MODEL` | — | AI 簡報助理模型名稱；與 `AI_API_KEY` 同時設定才會呼叫外部模型 |
+| `AI_API_BASE_URL` | — | OpenAI-compatible chat completions base URL，預設 `https://api.openai.com/v1` |
 
 ## 身分驗證
 
@@ -233,6 +240,7 @@ docker run -d -p 3000:3000 \
 | `/authors/[id]` | 作者公開簡報頁 |
 | `/admin/users` `/admin/logs` | 使用者管理、全站稽核 |
 | `/api/decks/**` | 簡報與投影片 CRUD、密碼驗證、瀏覽記錄 |
+| `/api/decks/[id]/ai` | AI 起稿、改寫、濃縮、語氣調整與講者備註 |
 | `/api/decks/[id]/revisions/**` | Markdown 版本歷史與還原 |
 | `/api/decks/[id]/share-links/**` | 分享連結建立、列表、撤銷 |
 | `/api/decks/[id]/collaborators/**` | 協作者管理 |

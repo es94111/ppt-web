@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { replaceDeckTags } from "@/lib/deck-tags";
 import { getDeckCollaboration, getOwnedDeck, hasDeckCookie, jsonError, requireUser } from "@/lib/http";
 import { deckUpdateSchema } from "@/lib/schemas";
+import { normalizeBrandKit } from "@/lib/brand";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -31,7 +32,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (!access.owns && access.role !== "EDITOR") return jsonError("沒有權限", 403);
   const parsed = deckUpdateSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("輸入資料不正確", 400, parsed.error.flatten());
-  const { password, tags, visibility: rawVisibility, category, ...rest } = parsed.data;
+  const { password, tags, visibility: rawVisibility, category, brand, ...rest } = parsed.data;
   const data: Prisma.DeckUpdateInput = { ...rest };
   // 可見性、密碼、分類屬於分享／管理設定，僅擁有者（或 Admin）可變更；EDITOR 協作者只能改內容欄位與標籤。
   if (access.owns) {
@@ -40,6 +41,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     data.visibility = visibility;
     data.passwordHash = effectiveVisibility !== "PUBLIC" ? null : password === undefined ? undefined : password === null ? null : await bcrypt.hash(password, 12);
     if (category !== undefined) data.category = category;
+    if (brand) {
+      const brandKit = normalizeBrandKit({ ...brand, font: brand.font || null });
+      data.brandName = brandKit.name;
+      data.brandLogoUrl = brandKit.logoUrl;
+      data.brandPrimaryColor = brandKit.primaryColor;
+      data.brandAccentColor = brandKit.accentColor;
+      data.brandFont = brandKit.font;
+      data.brandFooter = brandKit.footer;
+    }
   }
   const deck = await db.deck.update({ where: { id }, data });
   if (tags) await replaceDeckTags(id, tags);

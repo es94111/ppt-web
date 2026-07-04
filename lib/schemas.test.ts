@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { registerSchema, slideContentSchema } from "./schemas";
+import { brandKitSchema, deckAiSchema, registerSchema, slideContentSchema } from "./schemas";
+import { generateDeckAiText } from "./ai-assistant";
 import { splitMarkdownSlides, joinSlidesToMarkdown, parseMarkdownDeck } from "./slides";
 import { rateLimit } from "./rate-limit";
 
@@ -40,6 +41,45 @@ describe("registerSchema", () =>
   it("enforces password complexity", () =>
     expect(registerSchema.safeParse({ name: "A", email: "a@example.com", password: "alllowercase1" }).success).toBe(false)));
 
+describe("brandKitSchema", () => {
+  it("accepts safe brand settings", () =>
+    expect(brandKitSchema.safeParse({ name: "Acme", logoUrl: "/logo.png", primaryColor: "#2563eb", accentColor: "#f59e0b", font: "display", footer: "Confidential" }).success).toBe(true));
+  it("rejects unsafe logo URLs and malformed colors", () => {
+    expect(brandKitSchema.safeParse({ logoUrl: "javascript:alert(1)" }).success).toBe(false);
+    expect(brandKitSchema.safeParse({ primaryColor: "blue" }).success).toBe(false);
+  });
+});
+
+describe("deckAiSchema", () => {
+  it("accepts valid AI actions", () =>
+    expect(deckAiSchema.safeParse({ action: "draft", input: "AI 簡報助理", slideCount: 6 }).success).toBe(true));
+  it("rejects unknown AI actions", () =>
+    expect(deckAiSchema.safeParse({ action: "delete everything" }).success).toBe(false));
+});
+
+describe("generateDeckAiText", () => {
+  it("falls back locally when no model is configured", async () => {
+    const oldKey = process.env.AI_API_KEY;
+    const oldOpenAiKey = process.env.OPENAI_API_KEY;
+    const oldModel = process.env.AI_MODEL;
+    const oldOpenAiModel = process.env.OPENAI_MODEL;
+    delete process.env.AI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+    delete process.env.AI_MODEL;
+    delete process.env.OPENAI_MODEL;
+    try {
+      const result = await generateDeckAiText({ action: "notes", markdown: "# Roadmap\n\n- Ship analytics\n- Add brand kit" });
+      expect(result.provider).toBe("local");
+      expect(result.text).toContain("???");
+    } finally {
+      restoreEnv("AI_API_KEY", oldKey);
+      restoreEnv("OPENAI_API_KEY", oldOpenAiKey);
+      restoreEnv("AI_MODEL", oldModel);
+      restoreEnv("OPENAI_MODEL", oldOpenAiModel);
+    }
+  });
+});
+
 describe("rateLimit", () =>
   it("blocks requests beyond the limit", () => {
     const key = `test-${Date.now()}`;
@@ -47,3 +87,8 @@ describe("rateLimit", () =>
     expect(rateLimit(key, 2).allowed).toBe(true);
     expect(rateLimit(key, 2).allowed).toBe(false);
   }));
+
+function restoreEnv(key: string, value: string | undefined) {
+  if (value === undefined) delete process.env[key];
+  else process.env[key] = value;
+}

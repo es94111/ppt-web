@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { brandKitFromDeck } from "@/lib/brand";
 import { isShareLinkActive, shareAccessCookieName, verifyShareAccessToken } from "@/lib/share-links";
 import { PrintButton } from "@/components/PrintButton";
 import { SharePassword } from "@/components/SharePassword";
@@ -27,7 +28,7 @@ export default async function SharedPdfPage({ params }: { params: Promise<{ toke
           <div className="export-actions"><Link className="btn secondary small" href={`/s/${token}`}>返回播放</Link><PrintButton /></div>
         </div>
       </div>
-      <section className="print-deck">{link.deck.slides.map((slide) => <article className="print-slide" key={slide.id}><SlideView content={slide.content} /></article>)}</section>
+      <section className="print-deck">{link.deck.slides.map((slide) => <article className="print-slide" key={slide.id}><SlideView content={slide.content} brandKit={brandKitFromDeck(link.deck)} /></article>)}</section>
     </main>
   );
 }

@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { getShareLinkAnalytics } from "@/lib/share-analytics";
 
 export const dynamic = "force-dynamic";
 
@@ -32,8 +33,8 @@ export default async function DeckLogsPage({ params, searchParams }: { params: P
   since.setDate(since.getDate() - 13);
   since.setHours(0, 0, 0, 0);
 
-  const [logs, total, uniqueRows, slideGroups, recentReferers, dailyRows] = await db.$transaction([
-    db.viewLog.findMany({ where: tableWhere, include: { user: { select: { name: true, email: true } } }, orderBy: { viewedAt: "desc" }, skip: (page - 1) * 50, take: 50 }),
+  const [logs, total, uniqueRows, slideGroups, recentReferers, dailyRows, shareLinks] = await db.$transaction([
+    db.viewLog.findMany({ where: tableWhere, include: { user: { select: { name: true, email: true } }, shareLink: { select: { label: true, token: true } } }, orderBy: { viewedAt: "desc" }, skip: (page - 1) * 50, take: 50 }),
     db.viewLog.count({ where: tableWhere }),
     db.viewLog.groupBy({ by: ["userId", "ipAddress"], where: analyticsWhere }),
     db.viewLog.groupBy({ by: ["slideOrder"], where: { deckId: id, slideOrder: { not: null } }, _count: { _all: true } }),
@@ -45,7 +46,9 @@ export default async function DeckLogsPage({ params, searchParams }: { params: P
       GROUP BY 1
       ORDER BY 1
     `),
+    db.shareLink.findMany({ where: { deckId: id }, select: { id: true, token: true, label: true, expiresAt: true, revokedAt: true, createdAt: true }, orderBy: { createdAt: "desc" } }),
   ]);
+  const shareAnalytics = await getShareLinkAnalytics(id, shareLinks.map((link) => link.id), deck._count.slides);
 
   const uniqueVisitors = new Set(uniqueRows.map((row) => row.userId ? `u:${row.userId}` : `ip:${row.ipAddress}`)).size;
   const dailyMap = new Map(dailyRows.map((row) => [new Date(row.day).toISOString().slice(0, 10), Number(row.views)]));
@@ -104,12 +107,19 @@ export default async function DeckLogsPage({ params, searchParams }: { params: P
           </article>
         </div>
 
+        <div className="analytics-subhead"><h2>分享連結成效</h2><p className="muted">依每組 token 比較觀看次數、完成率與可能流失位置。</p></div>
+        <div className="table-wrap link-analytics-table"><table><thead><tr><th>分享連結</th><th>狀態</th><th>觀看</th><th>訪客</th><th>完成率</th><th>流失頁</th><th>最後觀看</th></tr></thead><tbody>{shareLinks.length ? shareLinks.map((link) => {
+          const analytics = shareAnalytics.get(link.id);
+          const active = !link.revokedAt && (!link.expiresAt || link.expiresAt.getTime() > Date.now());
+          return <tr key={link.id}><td><Link href={`/s/${link.token}`} target="_blank">{link.label || "未命名連結"}</Link></td><td>{active ? "有效" : "已失效"}</td><td>{analytics?.viewCount ?? 0}</td><td>{analytics?.uniqueVisitors ?? 0}</td><td>{analytics?.completionRate ?? 0}%</td><td>{analytics?.dropOffSlide ? `第 ${analytics.dropOffSlide} 頁後（${analytics.dropOffCount}）` : "—"}</td><td>{analytics?.lastViewedAt ? analytics.lastViewedAt.toLocaleString("zh-TW") : "—"}</td></tr>;
+        }) : <tr><td colSpan={7}>尚未建立分享連結</td></tr>}</tbody></table></div>
+
         <form className="filter-bar">
           <input className="input" name="ip" placeholder="篩選 IP" defaultValue={query.ip} />
           <button className="btn small">篩選</button>
           <Link className="btn secondary small" href={`/decks/${id}/logs`}>清除</Link>
         </form>
-        <div className="table-wrap"><table><thead><tr><th>時間</th><th>使用者</th><th>頁碼</th><th>IP</th><th>來源</th></tr></thead><tbody>{logs.map((log) => <tr key={log.id}><td>{log.viewedAt.toLocaleString("zh-TW")}</td><td>{log.user?.name || log.user?.email || "匿名"}</td><td>{log.slideOrder ?? "—"}</td><td>{log.ipAddress}</td><td className="truncate-cell">{log.referer || "—"}</td></tr>)}</tbody></table></div>
+        <div className="table-wrap"><table><thead><tr><th>時間</th><th>使用者</th><th>頁碼</th><th>分享</th><th>IP</th><th>來源</th></tr></thead><tbody>{logs.map((log) => <tr key={log.id}><td>{log.viewedAt.toLocaleString("zh-TW")}</td><td>{log.user?.name || log.user?.email || "匿名"}</td><td>{log.slideOrder ?? "—"}</td><td>{log.shareLink ? <Link href={`/s/${log.shareLink.token}`} target="_blank">{log.shareLink.label || "未命名"}</Link> : "—"}</td><td>{log.ipAddress}</td><td className="truncate-cell">{log.referer || "—"}</td></tr>)}</tbody></table></div>
         {total > 50 && <div className="pagination">{page > 1 && <Link className="btn secondary small" href={`?page=${page - 1}&ip=${encodeURIComponent(query.ip ?? "")}`}>上一頁</Link>}<span>{page} / {Math.ceil(total / 50)}</span>{page * 50 < total && <Link className="btn secondary small" href={`?page=${page + 1}&ip=${encodeURIComponent(query.ip ?? "")}`}>下一頁</Link>}</div>}
       </section>
     </main>

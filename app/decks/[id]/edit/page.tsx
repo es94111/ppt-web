@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { brandKitFromDeck } from "@/lib/brand";
 import { Editor } from "@/components/Editor";
 import { joinSlidesToMarkdown } from "@/lib/slides";
 import "@/app/editor.css";
@@ -21,7 +22,7 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
   const initialMarkdown = joinSlidesToMarkdown(deck.slides);
   return (
     <main>
-      <Editor deck={{ id: deck.id, title: deck.title, description: deck.description, visibility: deck.visibility, hasPassword: !!deck.passwordHash, initialMarkdown, category: deck.category, tags: deck.tags.map((item) => item.tag.name), slides: deck.slides.map((slide) => ({ id: slide.id, order: slide.order })), canManage }} />
+      <Editor deck={{ id: deck.id, title: deck.title, description: deck.description, visibility: deck.visibility, hasPassword: !!deck.passwordHash, initialMarkdown, category: deck.category, tags: deck.tags.map((item) => item.tag.name), slides: deck.slides.map((slide) => ({ id: slide.id, order: slide.order })), canManage, brandKit: brandKitFromDeck(deck) }} />
     </main>
   );
 }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BRAND_FONT_VALUES } from "./brand";
 
 // 投影片內容：Markdown 原生（可編輯）或 圖片（PPTX 轉出，唯讀）
 export const slideContentSchema = z.discriminatedUnion("kind", [
@@ -28,8 +29,18 @@ export const deckCreateSchema = z.object({
   category: z.string().trim().max(40).optional(),
   tags: z.array(z.string().trim().max(32)).max(8).optional(),
 });
-export const deckUpdateSchema = deckCreateSchema.partial().extend({ password: z.string().min(6).max(128).nullable().optional() });
-export const viewSchema = z.object({ slideOrder: z.number().int().min(1).max(10000).nullable().optional() });
+const brandColorSchema = z.string().trim().regex(/^#[0-9a-fA-F]{6}$/).or(z.literal(""));
+const brandLogoSchema = z.string().trim().max(2048).refine((value) => !value || value.startsWith("/") || /^https?:\/\//i.test(value), "Logo 必須是 https:// 或站內 / 開頭路徑");
+export const brandKitSchema = z.object({
+  name: z.string().trim().max(80).optional(),
+  logoUrl: brandLogoSchema.optional(),
+  primaryColor: brandColorSchema.optional(),
+  accentColor: brandColorSchema.optional(),
+  font: z.enum(BRAND_FONT_VALUES).or(z.literal("")).optional(),
+  footer: z.string().trim().max(120).optional(),
+}).strict();
+export const deckUpdateSchema = deckCreateSchema.partial().extend({ password: z.string().min(6).max(128).nullable().optional(), brand: brandKitSchema.optional() });
+export const viewSchema = z.object({ slideOrder: z.number().int().min(1).max(10000).nullable().optional(), shareToken: z.string().min(8).max(200).optional() });
 export const shareLinkCreateSchema = z.object({
   label: z.string().trim().max(80).optional(),
   password: z.string().min(6).max(128).optional().or(z.literal("")),
@@ -46,3 +57,12 @@ export const commentCreateSchema = z.object({
 }).strict();
 export const commentResolveSchema = z.object({ resolved: z.boolean() }).strict();
 export const favoriteSchema = z.object({ favorite: z.boolean() }).strict();
+export const deckAiSchema = z.object({
+  action: z.enum(["draft", "rewrite", "shorten", "tone", "notes"]),
+  input: z.string().max(500000).optional(),
+  markdown: z.string().max(500000).optional(),
+  selectedText: z.string().max(50000).optional(),
+  tone: z.string().trim().max(40).optional(),
+  audience: z.string().trim().max(120).optional(),
+  slideCount: z.number().int().min(1).max(30).optional(),
+}).strict();
