@@ -70,8 +70,24 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels)
-        id: meta
+      - name: Extract metadata for PR build
+        id: meta-pr
+        if: github.event_name == 'pull_request'
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=long
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Extract metadata for publish
+        id: meta-publish
+        if: github.event_name != 'pull_request'
         uses: docker/metadata-action@v6
         with:
           # 同時產生 GHCR 與 Docker Hub 兩組 image 名稱
@@ -86,12 +102,24 @@ jobs:
             type=sha,format=long
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push Docker image
+      - name: Build Docker image
+        if: github.event_name == 'pull_request'
         uses: docker/build-push-action@v7
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          push: false
+          tags: ${{ steps.meta-pr.outputs.tags }}
+          labels: ${{ steps.meta-pr.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push Docker image
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta-publish.outputs.tags }}
+          labels: ${{ steps.meta-publish.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

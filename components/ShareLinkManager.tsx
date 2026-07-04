@@ -1,6 +1,6 @@
 "use client";
 import { type FormEvent, useEffect, useState } from "react";
-import { Copy, ExternalLink, Link2, RotateCcw } from "lucide-react";
+import { Copy, ExternalLink, Link2, Loader2, RotateCcw } from "lucide-react";
 
 type LinkAnalytics = { viewCount: number; uniqueVisitors: number; completionRate: number; dropOffSlide: number | null; dropOffCount: number; lastViewedAt: string | null };
 type ShareLink = { id: string; token: string; label: string | null; allowDownload: boolean; expiresAt: string | null; revokedAt: string | null; createdAt: string; hasPassword: boolean; analytics?: LinkAnalytics };
@@ -8,6 +8,7 @@ type ShareLink = { id: string; token: string; label: string | null; allowDownloa
 export function ShareLinkManager({ deckId }: { deckId: string }) {
   const [links, setLinks] = useState<ShareLink[]>([]);
   const [message, setMessage] = useState("");
+  const [creating, setCreating] = useState(false);
   async function load() {
     const response = await fetch(`/api/decks/${deckId}/share-links`);
     if (response.ok) setLinks(await response.json());
@@ -15,25 +16,35 @@ export function ShareLinkManager({ deckId }: { deckId: string }) {
   useEffect(() => { void load(); }, []);
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    if (creating) return;
+    const formEl = event.currentTarget;
+    const form = new FormData(formEl);
     const expires = String(form.get("expiresAt") || "");
-    const response = await fetch(`/api/decks/${deckId}/share-links`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        label: String(form.get("label") || ""),
-        password: String(form.get("password") || ""),
-        allowDownload: form.get("allowDownload") === "on",
-        expiresAt: expires ? new Date(expires).toISOString() : null,
-      }),
-    });
-    if (!response.ok) {
-      setMessage((await response.json().catch(() => ({}))).error || "建立失敗");
-      return;
+    setCreating(true);
+    setMessage("建立中…");
+    try {
+      const response = await fetch(`/api/decks/${deckId}/share-links`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          label: String(form.get("label") || ""),
+          password: String(form.get("password") || ""),
+          allowDownload: form.get("allowDownload") === "on",
+          expiresAt: expires ? new Date(expires).toISOString() : null,
+        }),
+      });
+      if (!response.ok) {
+        setMessage((await response.json().catch(() => ({}))).error || "建立失敗");
+        return;
+      }
+      const created: ShareLink = await response.json();
+      formEl.reset();
+      setLinks((current) => [created, ...current]);
+      setMessage("已建立分享連結");
+      void load();
+    } finally {
+      setCreating(false);
     }
-    event.currentTarget.reset();
-    setMessage("已建立分享連結");
-    await load();
   }
   async function revoke(id: string) {
     const response = await fetch(`/api/decks/${deckId}/share-links/${id}`, { method: "PATCH" });
@@ -49,7 +60,7 @@ export function ShareLinkManager({ deckId }: { deckId: string }) {
       <div className="field"><label>到期時間</label><input className="input" name="expiresAt" type="datetime-local" /></div>
       <div className="field"><label>分享密碼</label><input className="input" name="password" type="password" minLength={10} autoComplete="new-password" placeholder="選填" /></div>
       <label className="check-row"><input name="allowDownload" type="checkbox" /> 允許下載 PDF</label>
-      <button className="btn small"><Link2 size={15} />建立分享連結</button>
+      <button className="btn small" disabled={creating}>{creating ? <Loader2 size={15} className="spin" /> : <Link2 size={15} />}{creating ? "建立中…" : "建立分享連結"}</button>
       {message && <p className={message.includes("失敗") ? "error" : "muted"}>{message}</p>}
     </form>
     <div className="manager-list">
