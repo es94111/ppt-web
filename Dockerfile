@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- Dependencies ----
-FROM node:24-alpine AS deps
+FROM node:26-alpine AS deps
 # Prisma needs libssl at engine load time.
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
@@ -10,7 +10,7 @@ COPY prisma ./prisma
 RUN npm ci
 
 # ---- Builder ----
-FROM node:24-alpine AS builder
+FROM node:26-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -18,14 +18,14 @@ COPY . .
 # `next build` runs `prisma generate` first (see package.json build script).
 # DATABASE_URL is only needed at runtime, not for the build.
 ENV NEXT_TELEMETRY_DISABLED=1
-# Type-check explicitly: `next build` has `typescript.ignoreBuildErrors` enabled
-# (Next 16 can't drive the TypeScript 7 native compiler's legacy API), so the
-# type gate lives here in `tsc --noEmit`. A type error fails the image build.
+# Fast-fail gate: `next build` re-checks types itself (via `experimental.useTypeScriptCli`,
+# needed for the TypeScript 7 native compiler), but that's bundled inside the ~15s build.
+# Running `tsc --noEmit` here first fails a broken build in ~2s instead.
 RUN npm run typecheck
 RUN npm run build
 
 # ---- Runner ----
-FROM node:24-alpine AS runner
+FROM node:26-alpine AS runner
 RUN apk add --no-cache openssl
 # The production image only runs `node`; npm/npx/corepack are unused here and
 # ship their own bundled, periodically-vulnerable dependencies (undici, tar, …).
