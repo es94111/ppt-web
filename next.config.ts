@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   outputFileTracingRoot: process.cwd(),
-  typescript: { ignoreBuildErrors: true },
+  experimental: { useTypeScriptCli: true },
   async headers() {
     return [{
       source: "/(.*)",
