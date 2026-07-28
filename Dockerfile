@@ -54,6 +54,14 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
+# `typescript` is a devDependency needed only for build-time type-checking; its
+# per-platform native compiler binary bundles a Go toolchain that trails upstream
+# CVE fixes. Prisma's CLI treats `typescript` as an optional peer dep (used only
+# to load .ts config/schema files, with its own fallback otherwise), so dropping
+# it post-build doesn't affect `prisma migrate deploy`. Keeps the container scan clean.
+RUN rm -rf ./node_modules/typescript ./node_modules/@typescript \
+  ./node_modules/.bin/tsc ./node_modules/.bin/tsserver
+
 USER nextjs
 EXPOSE 3000
 
