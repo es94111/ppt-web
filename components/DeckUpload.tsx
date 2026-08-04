@@ -45,7 +45,7 @@ export function DeckUpload() {
       </button>
       <button className="upload-tile" disabled={!!busy} onClick={() => pptxRef.current?.click()}>
         {busy === "pptx" ? <Loader2 className="spin" size={20} /> : <Presentation size={20} />}
-        <div><strong>PowerPoint 檔</strong><span className="muted">.pptx · 轉圖唯讀</span></div>
+        <div><strong>PowerPoint 檔</strong><span className="muted">.pptx · 可檢視與編輯</span></div>
       </button>
       {msg && <p className={msg.type === "error" ? "error" : "muted"}>{msg.text}</p>}
     </aside>

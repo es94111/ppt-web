@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { jsonError, requireUser } from "@/lib/http";
-import { convertPptxToImageSlides, getS3Config } from "@/lib/pptx";
+import { convertPptxToImageSlides, getS3Config, storePptxSource } from "@/lib/pptx";
 
 export const runtime = "nodejs";
 
 const MAX_BYTES = 50 * 1024 * 1024; // 50MB
 const ZIP_MAGIC = [0x50, 0x4b, 0x03, 0x04]; // PK\x03\x04（.pptx 為 zip）
 
-// 上傳 .pptx → 建立 PPTX 簡報並轉成每頁圖片（唯讀）
+// 上傳 .pptx → 保存原始檔、建立 PPTX 簡報並產生相容用的圖片縮圖
 export async function POST(request: NextRequest) {
   const user = await requireUser();
   if (!user) return jsonError("請先登入", 401);
@@ -32,12 +32,13 @@ export async function POST(request: NextRequest) {
   });
 
   try {
+    const sourceFile = await storePptxSource(deck.id, buffer);
     const slides = await convertPptxToImageSlides(deck.id, buffer);
     if (!slides.length) throw new Error("轉檔未產生任何頁面");
     await db.$transaction([
       db.slide.deleteMany({ where: { deckId: deck.id } }),
       ...slides.map((s, i) => db.slide.create({ data: { deckId: deck.id, order: i + 1, content: { kind: "image", src: s.src, alt: s.alt } } })),
-      db.deck.update({ where: { id: deck.id }, data: { status: "READY" } }),
+      db.deck.update({ where: { id: deck.id }, data: { status: "READY", sourceFile } }),
     ]);
     return NextResponse.json({ id: deck.id, status: "READY", slideCount: slides.length }, { status: 201 });
   } catch (e) {

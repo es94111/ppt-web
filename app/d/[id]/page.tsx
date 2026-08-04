@@ -27,5 +27,5 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
     const text = deck.status === "PROCESSING" ? "PPTX 轉檔中，請稍後重新整理。" : "PPTX 轉檔失敗，請重新上傳。";
     return <main><section className="container section"><div className="empty"><h3>{deck.title}</h3><p>{text}</p></div></section></main>;
   }
-  return <main><Viewer deckId={id} title={deck.title} exitHref={session?.user ? "/dashboard" : "/"} brandKit={brandKitFromDeck(deck)} slides={deck.slides.map((s) => ({ id: s.id, order: s.order, content: s.content, notes: s.notes }))} /></main>;
+  return <main><Viewer deckId={id} title={deck.title} exitHref={session?.user ? "/dashboard" : "/"} pptxUrl={deck.sourceType === "PPTX" && deck.sourceFile ? `/api/decks/${id}/pptx` : undefined} brandKit={brandKitFromDeck(deck)} slides={deck.slides.map((s) => ({ id: s.id, order: s.order, content: s.content, notes: s.notes }))} /></main>;
 }

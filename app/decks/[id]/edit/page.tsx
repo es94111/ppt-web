@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { brandKitFromDeck } from "@/lib/brand";
 import { Editor } from "@/components/Editor";
+import { PptxEditor } from "@/components/PptxEditor";
 import { joinSlidesToMarkdown } from "@/lib/slides";
 import "@/app/editor.css";
 
@@ -17,8 +18,11 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
   const canManage = session.user.role === "ADMIN" || deck.ownerId === session.user.id;
   if (!canEdit) redirect("/dashboard");
   if (session.user.role === "GUEST") redirect(`/d/${id}`);
-  // PPTX 匯入的簡報為唯讀，沒有編輯器，導向播放器
-  if (deck.sourceType === "PPTX") redirect(`/d/${id}`);
+  if (deck.sourceType === "PPTX") {
+    // 舊資料可能只有轉出的圖片、沒有原始檔；這類簡報仍維持既有唯讀播放器。
+    if (!deck.sourceFile) redirect(`/d/${id}`);
+    return <main><PptxEditor deck={{ id: deck.id, title: deck.title, sourceUrl: `/api/decks/${id}/pptx`, fileName: `${deck.title}.pptx` }} /></main>;
+  }
   const initialMarkdown = joinSlidesToMarkdown(deck.slides);
   return (
     <main>
