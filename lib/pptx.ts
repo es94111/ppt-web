@@ -5,7 +5,8 @@ import { promisify } from "node:util";
 import { mkdtemp, readFile, writeFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { randomUUID } from "node:crypto";
 
 const exec = promisify(execFile);
 const SOFFICE = process.env.SOFFICE_PATH || "soffice";
@@ -17,6 +18,28 @@ export function getS3Config() {
   const { S3_ENDPOINT, S3_REGION, S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY, S3_PUBLIC_URL } = process.env;
   if (!S3_ENDPOINT || !S3_BUCKET || !S3_ACCESS_KEY || !S3_SECRET_KEY || !S3_PUBLIC_URL) return null;
   return { S3_ENDPOINT, S3_REGION: S3_REGION || "auto", S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY, S3_PUBLIC_URL };
+}
+
+function createS3Client(cfg: NonNullable<ReturnType<typeof getS3Config>>) {
+  return new S3Client({ region: cfg.S3_REGION, endpoint: cfg.S3_ENDPOINT, forcePathStyle: true, credentials: { accessKeyId: cfg.S3_ACCESS_KEY, secretAccessKey: cfg.S3_SECRET_KEY } }); // gitleaks:allow (值來自 env var 參照，非硬編碼密鑰)
+}
+
+/** 將原始 .pptx 保存在私有物件儲存，回傳資料庫應保存的 object key。 */
+export async function storePptxSource(deckId: string, pptx: Buffer): Promise<string> {
+  const cfg = getS3Config();
+  if (!cfg) throw new Error("尚未設定物件儲存服務（S3），無法保存 PPTX 原始檔");
+  const key = `decks/${deckId}/source/${randomUUID()}.pptx`;
+  await createS3Client(cfg).send(new PutObjectCommand({ Bucket: cfg.S3_BUCKET, Key: key, Body: pptx, ContentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation", ContentLength: pptx.byteLength, CacheControl: "private, no-store" }));
+  return key;
+}
+
+/** 從私有物件儲存讀取原始 .pptx；呼叫端必須先完成存取權限檢查。 */
+export async function readPptxSource(key: string): Promise<Buffer> {
+  const cfg = getS3Config();
+  if (!cfg) throw new Error("尚未設定物件儲存服務（S3），無法讀取 PPTX 原始檔");
+  const result = await createS3Client(cfg).send(new GetObjectCommand({ Bucket: cfg.S3_BUCKET, Key: key }));
+  if (!result.Body) throw new Error("物件儲存未回傳 PPTX 內容");
+  return Buffer.from(await result.Body.transformToByteArray());
 }
 
 function pageNumber(name: string) {
@@ -43,7 +66,7 @@ export async function convertPptxToImageSlides(deckId: string, pptx: Buffer): Pr
     const files = (await readdir(work)).filter((f) => /^page-?\d+\.png$/.test(f)).sort((a, b) => pageNumber(a) - pageNumber(b));
     if (!files.length) throw new Error("轉檔未產生任何頁面");
 
-    const client = new S3Client({ region: cfg.S3_REGION, endpoint: cfg.S3_ENDPOINT, forcePathStyle: true, credentials: { accessKeyId: cfg.S3_ACCESS_KEY, secretAccessKey: cfg.S3_SECRET_KEY } });
+    const client = createS3Client(cfg);
     const base = cfg.S3_PUBLIC_URL.replace(/\/$/, "");
     const slides: { src: string; alt: string }[] = [];
     for (let i = 0; i < files.length; i++) {

@@ -1,6 +1,19 @@
 {
-  "currentVersion": "2.2.3",
+  "currentVersion": "2.3.0",
   "releases": [
+    {
+      "version": "2.3.0",
+      "date": "2026-08-04",
+      "title": "PowerPoint 簡報新增瀏覽器內檢視與編輯功能",
+      "type": "new",
+      "changes": [
+        { "tag": "warning", "text": "此功能僅適用於本次更新之後上傳或重新上傳的 PowerPoint 簡報；先前已上傳、系統未保留原始檔的舊簡報將維持原本唯讀瀏覽方式，如需啟用編輯請重新上傳該檔案。" },
+        { "tag": "new", "text": "上傳 PowerPoint（.pptx）簡報後，現在可以直接在瀏覽器中檢視與編輯投影片內容，不再只能瀏覽轉出的圖片。" },
+        { "tag": "new", "text": "編輯 PowerPoint 簡報時，系統會在偵測到變更後自動於背景儲存，並同步更新可供下載與匯出 PDF 使用的版本。" },
+        { "tag": "improved", "text": "簡報工作區卡片上的「編輯」按鈕現在也會顯示在 PowerPoint 簡報，不必重新上傳整份檔案就能修改內容。" },
+        { "tag": "improved", "text": "播放與分享連結播放 PowerPoint 簡報時改用原生檢視器呈現版面效果，並持續記錄目前頁碼供瀏覽成效分析使用。" }
+      ]
+    },
     {
       "version": "2.2.3",
       "date": "2026-07-28",

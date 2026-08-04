@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getEditableDeck, jsonError, requireUser } from "@/lib/http";
-import { convertPptxToImageSlides, getS3Config } from "@/lib/pptx";
+import { convertPptxToImageSlides, getS3Config, storePptxSource } from "@/lib/pptx";
 
 export const runtime = "nodejs";
 
 const MAX_BYTES = 50 * 1024 * 1024; // 50MB
 const ZIP_MAGIC = [0x50, 0x4b, 0x03, 0x04]; // PK\x03\x04
 
-// 以新的 .pptx 覆蓋更新「既有」的 PPTX 簡報（重新轉檔並取代所有頁面）
+// 以新的 .pptx 覆蓋更新「既有」的 PPTX 簡報（保存原始檔、重新轉檔並取代所有頁面）
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
   if (!user) return jsonError("請先登入", 401);
@@ -29,12 +29,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   await db.deck.update({ where: { id }, data: { status: "PROCESSING" } });
   try {
+    const sourceFile = await storePptxSource(id, buffer);
     const slides = await convertPptxToImageSlides(id, buffer);
     if (!slides.length) throw new Error("轉檔未產生任何頁面");
     await db.$transaction([
       db.slide.deleteMany({ where: { deckId: id } }),
       ...slides.map((s, i) => db.slide.create({ data: { deckId: id, order: i + 1, content: { kind: "image", src: s.src, alt: s.alt } } })),
-      db.deck.update({ where: { id }, data: { status: "READY" } }),
+      db.deck.update({ where: { id }, data: { status: "READY", sourceFile } }),
     ]);
     return NextResponse.json({ id, status: "READY", slideCount: slides.length });
   } catch (e) {
