@@ -1,6 +1,16 @@
 {
-  "currentVersion": "2.3.1",
+  "currentVersion": "2.3.2",
   "releases": [
+    {
+      "version": "2.3.2",
+      "date": "2026-08-04",
+      "title": "修正 PowerPoint 轉檔在部署環境崩潰的問題",
+      "type": "fixed",
+      "changes": [
+        { "tag": "fixed", "text": "修正上傳 PowerPoint（.pptx）簡報時轉檔程序直接崩潰（LibreOffice 啟動失敗）導致簡報無法建立的問題，現在可正常轉換投影片。" },
+        { "tag": "fixed", "text": "轉檔執行環境改用更穩定的系統基底，確保 LibreOffice 能在容器內正常運作。" }
+      ]
+    },
     {
       "version": "2.3.1",
       "date": "2026-08-04",

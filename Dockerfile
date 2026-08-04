@@ -1,17 +1,19 @@
 # syntax=docker/dockerfile:1
 
 # ---- Dependencies ----
-FROM node:26-alpine AS deps
+FROM node:26-bookworm-slim AS deps
 # Prisma needs libssl at engine load time.
-RUN apk add --no-cache libc6-compat openssl
+RUN apt-get update && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
 RUN npm ci
 
 # ---- Builder ----
-FROM node:26-alpine AS builder
-RUN apk add --no-cache libc6-compat openssl
+FROM node:26-bookworm-slim AS builder
+RUN apt-get update && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -25,10 +27,14 @@ RUN npm run typecheck
 RUN npm run build
 
 # ---- Runner ----
-FROM node:26-alpine AS runner
+# 基底用 Debian（glibc）而非 Alpine：Alpine 的 LibreOffice（musl 建置）啟動即崩潰
+# （terminate called after throwing ... RuntimeException），Debian 套件可正常 headless 轉檔。
+FROM node:26-bookworm-slim AS runner
 # PPTX 轉檔需要 LibreOffice headless（soffice）與 poppler-utils（pdftoppm），
 # 並安裝 Noto CJK 中文字型避免簡報文字渲染成方塊。見 lib/pptx.ts 與開發文件 §4.3 / §9.6。
-RUN apk add --no-cache openssl libreoffice-impress poppler-utils font-noto-cjk
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  openssl libreoffice-impress poppler-utils fonts-noto-cjk \
+  && rm -rf /var/lib/apt/lists/*
 # The production image only runs `node`; npm/npx/corepack are unused here and
 # ship their own bundled, periodically-vulnerable dependencies (undici, tar, …).
 # Drop them so the container scan stays clean. Prisma is invoked via its local bin.
