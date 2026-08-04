@@ -26,7 +26,9 @@ RUN npm run build
 
 # ---- Runner ----
 FROM node:26-alpine AS runner
-RUN apk add --no-cache openssl
+# PPTX 轉檔需要 LibreOffice headless（soffice）與 poppler-utils（pdftoppm），
+# 並安裝 Noto CJK 中文字型避免簡報文字渲染成方塊。見 lib/pptx.ts 與開發文件 §4.3 / §9.6。
+RUN apk add --no-cache openssl libreoffice-impress poppler-utils font-noto-cjk
 # The production image only runs `node`; npm/npx/corepack are unused here and
 # ship their own bundled, periodically-vulnerable dependencies (undici, tar, …).
 # Drop them so the container scan stays clean. Prisma is invoked via its local bin.
@@ -41,7 +43,10 @@ ENV HOSTNAME=0.0.0.0
 
 # Run as an unprivileged user.
 RUN addgroup --system --gid 1001 nodejs \
-  && adduser --system --uid 1001 nextjs
+  && adduser --system --uid 1001 nextjs \
+  # 確保非 root 使用者有可寫的 HOME（LibreOffice 首次執行需建立設定檔）
+  && mkdir -p /home/nextjs \
+  && chown nextjs:nodejs /home/nextjs
 
 # Standalone server + static assets produced by `output: "standalone"`.
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
