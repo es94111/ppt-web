@@ -1,0 +1,38 @@
+name: PR Agent
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+  issue_comment:
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: write
+  checks: write
+
+jobs:
+  pr_agent_job:
+    if: ${{ github.event.sender.type != 'Bot' }}
+    runs-on: ubuntu-latest
+    name: Run PR Agent on pull requests and comments
+    steps:
+      - name: PR Agent action step
+        uses: the-pr-agent/pr-agent@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 自架 litellm proxy，openai-compatible endpoint
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+          OPENAI.API_BASE: "https://api.shao.one/"
+          config.model: "openai/deepseek-v4-flash:0731"
+          config.fallback_models: '["openai/deepseek-v4-flash:0731"]'
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "true"
+          github_action_config.auto_improve: "true"
+          # 加大輸出詳細度：review 給分、可拆分建議、TODO 掃描、findings/建議數量、describe 逐檔摘要表
+          PR_REVIEWER.REQUIRE_SCORE_REVIEW: "true"
+          PR_REVIEWER.REQUIRE_CAN_BE_SPLIT_REVIEW: "true"
+          PR_REVIEWER.REQUIRE_TODO_SCAN: "true"
+          PR_REVIEWER.NUM_MAX_FINDINGS: "5"
+          PR_CODE_SUGGESTIONS.NUM_CODE_SUGGESTIONS_PER_CHUNK: "5"
+          PR_DESCRIPTION.INLINE_FILE_SUMMARY: "table"
