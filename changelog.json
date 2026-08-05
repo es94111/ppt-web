@@ -1,6 +1,17 @@
 {
-  "currentVersion": "2.5.0",
+  "currentVersion": "2.6.0",
   "releases": [
+    {
+      "version": "2.6.0",
+      "date": "2026-08-05",
+      "title": "新增 PowerPoint 上傳，自動轉為可編輯 Markdown 簡報",
+      "type": "new",
+      "changes": [
+        { "tag": "new", "text": "上傳面板新增「PowerPoint 檔」選項，選擇 .pptx 檔案後系統會自動解析投影片內容，轉換成標題、條列項目、表格與講者備註齊全的可編輯 Markdown 簡報。" },
+        { "tag": "new", "text": "簡報工作區的「更新」功能現在也能選擇 PowerPoint 檔案，直接以其內容覆蓋既有簡報的所有頁面，覆蓋前會自動保留一份可還原的版本紀錄。" },
+        { "tag": "improved", "text": "PowerPoint 轉換以文字與結構為主，若簡報中有圖片且系統已設定物件儲存服務，圖片會自動一併匯入；版面配置、字型與動畫效果則不會保留，可於匯入後在 Markdown 編輯器中調整。" }
+      ]
+    },
     {
       "version": "2.5.0",
       "date": "2026-08-05",
