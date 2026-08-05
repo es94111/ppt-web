@@ -26,6 +26,7 @@ jobs:
           OPENAI.API_BASE: "https://api.shao.one/"
           config.model: "openai/deepseek-v4-flash:0731"
           config.fallback_models: '["openai/deepseek-v4-flash:0731"]'
+          config.custom_model_max_tokens: "1050000"
           github_action_config.auto_review: "true"
           github_action_config.auto_describe: "true"
           github_action_config.auto_improve: "true"
