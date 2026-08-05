@@ -1,6 +1,15 @@
 {
-  "currentVersion": "2.3.2",
+  "currentVersion": "2.3.3",
   "releases": [
+    {
+      "version": "2.3.3",
+      "date": "2026-08-05",
+      "title": "修正 PPTX 編輯畫面缺少分享選單的問題",
+      "type": "fixed",
+      "changes": [
+        { "tag": "fixed", "text": "修正 PowerPoint（.pptx）簡報編輯畫面缺少「分享」選單的問題，現在擁有者可從編輯工具列開啟分享連結管理，設定連結期限、密碼與下載權限。" }
+      ]
+    },
     {
       "version": "2.3.2",
       "date": "2026-08-04",
