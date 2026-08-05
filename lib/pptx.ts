@@ -224,6 +224,28 @@ function renderMathElement(node: XmlNode): string {
   return latex ? `$${latex}$` : "";
 }
 
+const MATH_TAGS = new Set(["a14:m", "m:oMathPara", "m:oMath"]);
+
+/** 在段落子節點中尋找 OMML 公式；PowerPoint 會把公式包在 mc:AlternateContent → mc:Choice 裡，需往下鑽一層。 */
+function findMathInChild(node: XmlNode): XmlNode | undefined {
+  if (MATH_TAGS.has(node.tag)) return node;
+  if (node.tag === "mc:AlternateContent" || node.tag === "mc:Choice" || node.tag === "mc:Fallback") {
+    for (const child of node.children) {
+      const found = findMathInChild(child);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+/** 渲染 mc:Fallback 分支內的一般文字 run（Choice 分支沒有公式時才用得上）。 */
+function renderFallbackRuns(node: XmlNode, rels: Map<string, Rel>): string {
+  return node.children
+    .filter((c) => c.tag === "a:r" || c.tag === "a:br" || c.tag === "a:fld")
+    .map((c) => renderRun(c, rels))
+    .join("");
+}
+
 function renderRun(node: XmlNode, rels: Map<string, Rel>): string {
   if (node.tag === "a:br") return "  \n";
   const tNode = findFirst(node, "a:t");
@@ -248,8 +270,20 @@ function renderParagraph(p: XmlNode, rels: Map<string, Rel>, defaultBulleted: bo
   const bulleted = defaultBulleted && !explicitNoBullet;
 
   const runText = p.children
-    .filter((c) => c.tag === "a:r" || c.tag === "a:br" || c.tag === "a:fld" || c.tag === "a14:m" || c.tag === "m:oMathPara" || c.tag === "m:oMath")
-    .map((c) => (c.tag === "a14:m" || c.tag === "m:oMathPara" || c.tag === "m:oMath" ? renderMathElement(c) : renderRun(c, rels)))
+    .filter((c) => c.tag === "a:r" || c.tag === "a:br" || c.tag === "a:fld" || MATH_TAGS.has(c.tag) || c.tag === "mc:AlternateContent" || c.tag === "mc:Choice" || c.tag === "mc:Fallback")
+    .map((c) => {
+      const math = findMathInChild(c);
+      if (math) {
+        const rendered = renderMathElement(math);
+        if (rendered) return rendered;
+      }
+      if (c.tag === "mc:AlternateContent" || c.tag === "mc:Choice" || c.tag === "mc:Fallback") {
+        // Choice 分支沒有可渲染的公式（例如舊版檢視器寫的備援內容），退回 Fallback 的一般文字
+        const fallback = c.tag === "mc:Fallback" ? c : findFirst(c, "mc:Fallback");
+        return fallback ? renderFallbackRuns(fallback, rels) : "";
+      }
+      return renderRun(c, rels);
+    })
     .join("");
   const trimmed = runText.trim();
   if (!trimmed) return { text: "", bulleted: false };
