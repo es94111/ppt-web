@@ -179,4 +179,35 @@ describe("parsePptxToSlides", () => {
     const slides = await parsePptxToSlides(buf);
     expect(slides[0].markdown).toContain("${x}^{n}+{y}_{n}$");
   });
+
+  it("collects a whole p:sp shape wrapped in mc:AlternateContent (formula text box), preferring mc:Choice over the mc:Fallback image", async () => {
+    // 實測 PowerPoint 檔案的真實結構：不是段落內的公式被包住，而是整個文字方塊形狀被包在
+    // mc:AlternateContent 底下 —— mc:Choice 放含 OMML 的形狀，mc:Fallback 放給舊版檢視器看的靜態圖片。
+    const slideWithWrappedShape = slide1Xml.replace(
+      "</p:spTree>",
+      `<mc:AlternateContent>
+  <mc:Choice Requires="a14">
+    <p:sp><p:nvSpPr><p:cNvPr id="19" name="Equation Box"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/>
+      <p:txBody><a:bodyPr/><a:lstStyle/>
+        <a:p><a14:m><m:oMathPara><m:oMath><m:sSup><m:e><m:r><m:t>E</m:t></m:r></m:e><m:sup><m:r><m:t>2</m:t></m:r></m:sup></m:sSup></m:oMath></m:oMathPara></a14:m></a:p>
+      </p:txBody>
+    </p:sp>
+  </mc:Choice>
+  <mc:Fallback>
+    <p:sp><p:nvSpPr><p:cNvPr id="19" name="Equation Box"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/>
+      <p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>fallback image placeholder</a:t></a:r></a:p></p:txBody>
+    </p:sp>
+  </mc:Fallback>
+</mc:AlternateContent>
+</p:spTree>`
+    );
+    const buf = buildZip([
+      { name: "ppt/presentation.xml", data: Buffer.from(presentationXml), method: 8 },
+      { name: "ppt/_rels/presentation.xml.rels", data: Buffer.from(presentationRels), method: 0 },
+      { name: "ppt/slides/slide1.xml", data: Buffer.from(slideWithWrappedShape), method: 8 },
+    ]);
+    const slides = await parsePptxToSlides(buf);
+    expect(slides[0].markdown).toContain("${E}^{2}$");
+    expect(slides[0].markdown).not.toContain("fallback image placeholder");
+  });
 });

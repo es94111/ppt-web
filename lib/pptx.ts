@@ -353,12 +353,19 @@ async function renderPicture(pic: XmlNode, rels: Map<string, Rel>, zip: ZipEntri
   return `![${alt}](${url})`;
 }
 
-/** 收集 spTree 底下所有形狀，並攤平 p:grpSp（群組）內的巢狀形狀。 */
+/** 收集 spTree 底下所有形狀，並攤平 p:grpSp（群組）內的巢狀形狀。
+ * PowerPoint 會把整個公式形狀包在 mc:AlternateContent 底下（mc:Choice 放 OMML 版本、
+ * mc:Fallback 放給舊版檢視器看的靜態圖片），因此要優先鑽進 mc:Choice 抓形狀，
+ * 沒有才退回 mc:Fallback，避免整個公式形狀被略過或誤用成圖片。 */
 function collectShapes(node: XmlNode): XmlNode[] {
   const out: XmlNode[] = [];
   for (const child of node.children) {
     if (child.tag === "p:grpSp") out.push(...collectShapes(child));
     else if (child.tag === "p:sp" || child.tag === "p:pic" || child.tag === "p:graphicFrame") out.push(child);
+    else if (child.tag === "mc:AlternateContent") {
+      const branch = children(child, "mc:Choice")[0] || children(child, "mc:Fallback")[0];
+      if (branch) out.push(...collectShapes(branch));
+    }
   }
   return out;
 }
