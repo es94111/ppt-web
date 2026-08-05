@@ -1,6 +1,18 @@
 {
-  "currentVersion": "2.6.1",
+  "currentVersion": "2.6.2",
   "releases": [
+    {
+      "version": "2.6.2",
+      "date": "2026-08-05",
+      "title": "修正部分 PowerPoint 公式仍無法轉換的問題",
+      "type": "fixed",
+      "changes": [
+        {
+          "tag": "fixed",
+          "text": "修正部分 PowerPoint 簡報轉換時數學公式仍會遺失的問題：以新版 PowerPoint 建立的方程式現在也能完整轉為可編輯的數學式，並在投影片中正常顯示。"
+        }
+      ]
+    },
     {
       "version": "2.6.1",
       "date": "2026-08-05",

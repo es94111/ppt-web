@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildZip } from "./zip.test";
 import { isPptxFile, parsePptxToSlides } from "./pptx";
 
-const NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"';
+const NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"';
 
 const presentationXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <p:presentation ${NS}><p:sldIdLst><p:sldId id="256" r:id="rId1"/></p:sldIdLst></p:presentation>`;
@@ -103,5 +103,80 @@ describe("parsePptxToSlides", () => {
     ]);
     const slides = await parsePptxToSlides(buf);
     expect(slides[0].markdown).toContain("Roots are $\\frac{-b±{√b}^{2}}{2a}$");
+  });
+
+  it("converts equations wrapped in mc:AlternateContent (real PowerPoint structure)", async () => {
+    // PowerPoint 2013+ 會把公式寫成 <mc:AlternateContent><mc:Choice Requires="a14"><a14:m>…</a14:m></mc:Choice>…
+    const slideWithWrappedMath = slide1Xml.replace(
+      "</p:spTree>",
+      `<p:sp><p:nvSpPr><p:cNvPr id="9" name="Equation 1"/><p:cNvSpPr/><p:nvPr><p:ph type="body" idx="2"/></p:nvPr></p:nvSpPr><p:spPr/>
+  <p:txBody><a:bodyPr/><a:lstStyle/>
+    <a:p>
+      <a:r><a:rPr lang="en-US"/><a:t>Area is </a:t></a:r>
+      <mc:AlternateContent>
+        <mc:Choice Requires="a14">
+          <a14:m><m:oMath><m:f><m:num><m:r><m:t>π</m:t></m:r><m:r><m:t>r</m:t></m:r><m:sSup><m:e><m:r><m:t>r</m:t></m:r></m:e><m:sup><m:r><m:t>2</m:t></m:r></m:sup></m:sSup></m:num><m:den><m:r><m:t>2</m:t></m:r></m:den></m:f></m:oMath></a14:m>
+        </mc:Choice>
+        <mc:Fallback><a:r><a:rPr lang="en-US"/><a:t>pi*r^2/2</a:t></a:r></mc:Fallback>
+      </mc:AlternateContent>
+      <a:r><a:rPr lang="en-US"/><a:t>.</a:t></a:r>
+    </a:p>
+  </p:txBody>
+</p:sp>
+</p:spTree>`
+    );
+    const buf = buildZip([
+      { name: "ppt/presentation.xml", data: Buffer.from(presentationXml), method: 8 },
+      { name: "ppt/_rels/presentation.xml.rels", data: Buffer.from(presentationRels), method: 0 },
+      { name: "ppt/slides/slide1.xml", data: Buffer.from(slideWithWrappedMath), method: 8 },
+    ]);
+    const slides = await parsePptxToSlides(buf);
+    expect(slides[0].markdown).toContain("Area is $\\frac{πr{r}^{2}}{2}$.");
+    expect(slides[0].markdown).not.toContain("pi*r^2/2");
+  });
+
+  it("falls back to plain text when mc:AlternateContent has no OMML", async () => {
+    const slideWithFallback = slide1Xml.replace(
+      "</p:spTree>",
+      `<p:sp><p:nvSpPr><p:cNvPr id="9" name="Equation 1"/><p:cNvSpPr/><p:nvPr><p:ph type="body" idx="2"/></p:nvPr></p:nvSpPr><p:spPr/>
+  <p:txBody><a:bodyPr/><a:lstStyle/>
+    <a:p>
+      <mc:AlternateContent>
+        <mc:Choice Requires="a14"><a14:m/></mc:Choice>
+        <mc:Fallback><a:r><a:rPr lang="en-US"/><a:t>legacy formula text</a:t></a:r></mc:Fallback>
+      </mc:AlternateContent>
+    </a:p>
+  </p:txBody>
+</p:sp>
+</p:spTree>`
+    );
+    const buf = buildZip([
+      { name: "ppt/presentation.xml", data: Buffer.from(presentationXml), method: 8 },
+      { name: "ppt/_rels/presentation.xml.rels", data: Buffer.from(presentationRels), method: 0 },
+      { name: "ppt/slides/slide1.xml", data: Buffer.from(slideWithFallback), method: 8 },
+    ]);
+    const slides = await parsePptxToSlides(buf);
+    expect(slides[0].markdown).toContain("legacy formula text");
+  });
+
+  it("converts m:oMathPara paragraphs (display equations)", async () => {
+    const slideWithDisplayMath = slide1Xml.replace(
+      "</p:spTree>",
+      `<p:sp><p:nvSpPr><p:cNvPr id="9" name="Equation 1"/><p:cNvSpPr/><p:nvPr><p:ph type="body" idx="2"/></p:nvPr></p:nvSpPr><p:spPr/>
+  <p:txBody><a:bodyPr/><a:lstStyle/>
+    <a:p>
+      <m:oMathPara><m:oMath><m:sSup><m:e><m:r><m:t>x</m:t></m:r></m:e><m:sup><m:r><m:t>n</m:t></m:r></m:sup></m:sSup><m:r><m:t>+</m:t></m:r><m:sSub><m:e><m:r><m:t>y</m:t></m:r></m:e><m:sub><m:r><m:t>n</m:t></m:r></m:sub></m:sSub></m:oMath></m:oMathPara>
+    </a:p>
+  </p:txBody>
+</p:sp>
+</p:spTree>`
+    );
+    const buf = buildZip([
+      { name: "ppt/presentation.xml", data: Buffer.from(presentationXml), method: 8 },
+      { name: "ppt/_rels/presentation.xml.rels", data: Buffer.from(presentationRels), method: 0 },
+      { name: "ppt/slides/slide1.xml", data: Buffer.from(slideWithDisplayMath), method: 8 },
+    ]);
+    const slides = await parsePptxToSlides(buf);
+    expect(slides[0].markdown).toContain("${x}^{n}+{y}_{n}$");
   });
 });

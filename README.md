@@ -1,6 +1,6 @@
 # SlideForge
 
-![version](https://img.shields.io/badge/version-2.6.1-blue)
+![version](https://img.shields.io/badge/version-2.6.2-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-blue)
 
