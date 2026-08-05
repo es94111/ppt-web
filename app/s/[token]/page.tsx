@@ -18,5 +18,5 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
   if (!link || !isShareLinkActive(link) || link.deck.status !== "READY") notFound();
   const accessToken = (await cookies()).get(shareAccessCookieName(token))?.value;
   if (link.passwordHash && !verifyShareAccessToken(token, accessToken)) return <main><SharePassword token={token} title={link.deck.title} /></main>;
-  return <main><Viewer deckId={link.deck.id} title={link.deck.title} exitHref="/" downloadHref={link.allowDownload ? `/s/${token}/pdf` : undefined} shareToken={token} pptxUrl={link.deck.sourceType === "PPTX" && link.deck.sourceFile ? `/api/decks/${link.deck.id}/pptx?shareToken=${encodeURIComponent(token)}` : undefined} brandKit={brandKitFromDeck(link.deck)} slides={link.deck.slides.map((slide) => ({ id: slide.id, order: slide.order, content: slide.content, notes: slide.notes }))} /></main>;
+  return <main><Viewer deckId={link.deck.id} title={link.deck.title} exitHref="/" downloadHref={link.allowDownload ? `/s/${token}/pdf` : undefined} shareToken={token} brandKit={brandKitFromDeck(link.deck)} slides={link.deck.slides.map((slide) => ({ id: slide.id, order: slide.order, content: slide.content, notes: slide.notes }))} /></main>;
 }

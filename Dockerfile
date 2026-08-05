@@ -27,13 +27,9 @@ RUN npm run typecheck
 RUN npm run build
 
 # ---- Runner ----
-# 基底用 Debian（glibc）而非 Alpine：Alpine 的 LibreOffice（musl 建置）啟動即崩潰
-# （terminate called after throwing ... RuntimeException），Debian 套件可正常 headless 轉檔。
 FROM node:26-bookworm-slim AS runner
-# PPTX 轉檔需要 LibreOffice headless（soffice）與 poppler-utils（pdftoppm），
-# 並安裝 Noto CJK 中文字型避免簡報文字渲染成方塊。見 lib/pptx.ts 與開發文件 §4.3 / §9.6。
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  openssl libreoffice-impress poppler-utils fonts-noto-cjk \
+# Prisma needs libssl at engine load time.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl \
   && rm -rf /var/lib/apt/lists/*
 # The production image only runs `node`; npm/npx/corepack are unused here and
 # ship their own bundled, periodically-vulnerable dependencies (undici, tar, …).
@@ -49,10 +45,7 @@ ENV HOSTNAME=0.0.0.0
 
 # Run as an unprivileged user.
 RUN addgroup --system --gid 1001 nodejs \
-  && adduser --system --uid 1001 nextjs \
-  # 確保非 root 使用者有可寫的 HOME（LibreOffice 首次執行需建立設定檔）
-  && mkdir -p /home/nextjs \
-  && chown nextjs:nodejs /home/nextjs
+  && adduser --system --uid 1001 nextjs
 
 # Standalone server + static assets produced by `output: "standalone"`.
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

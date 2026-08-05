@@ -10,7 +10,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { id } = await params;
   const access = await getEditableDeck(id, user);
   if (access.error) return access.error;
-  if (access.deck.sourceType === "PPTX") return jsonError("PPTX 匯入的簡報為唯讀，無法使用 AI 編輯", 400);
   const ip = getClientIp(request);
   if (!(await rateLimit(`deck-ai:${user.id}:${id}:${ip}`, 20, 60_000)).allowed) return jsonError("AI 助理使用過於頻繁，請稍後再試", 429);
 

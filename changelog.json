@@ -1,6 +1,18 @@
 {
-  "currentVersion": "2.4.1",
+  "currentVersion": "2.5.0",
   "releases": [
+    {
+      "version": "2.5.0",
+      "date": "2026-08-05",
+      "title": "移除 PowerPoint 支援，統一 Markdown 管理",
+      "type": "removed",
+      "changes": [
+        { "tag": "warning", "text": "先前上傳的 PowerPoint 簡報仍可繼續播放與瀏覽，但不再提供原始檔檢視與編輯；建議先備份原始 .pptx 檔案，進入編輯畫面後將改以 Markdown 管理。" },
+        { "tag": "removed", "text": "移除 PowerPoint（.pptx）上傳與瀏覽器內檢視／編輯功能，簡報現在一律以 Markdown 建立與管理，上傳面板僅保留 Markdown 檔匯入。" },
+        { "tag": "improved", "text": "已匯入的 PowerPoint 簡報（以圖片呈現的頁面）現在可以直接在編輯器中以 Markdown 繼續編輯與更新，不再受限於唯讀模式。" },
+        { "tag": "improved", "text": "系統移除 PowerPoint 檢視與編輯元件，網頁載入更輕量、更快速。" }
+      ]
+    },
     {
       "version": "2.4.1",
       "date": "2026-08-05",
