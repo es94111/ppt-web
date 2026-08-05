@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildZip } from "./zip.test";
 import { isPptxFile, parsePptxToSlides } from "./pptx";
 
-const NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+const NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"';
 
 const presentationXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <p:presentation ${NS}><p:sldIdLst><p:sldId id="256" r:id="rId1"/></p:sldIdLst></p:presentation>`;
@@ -81,5 +81,27 @@ describe("parsePptxToSlides", () => {
 
   it("rejects files that are not valid PowerPoint packages", async () => {
     await expect(parsePptxToSlides(Buffer.from("not a pptx"))).rejects.toThrow();
+  });
+
+  it("converts OMML equations (a14:m) into LaTeX math", async () => {
+    const slideWithMath = slide1Xml.replace(
+      "</p:spTree>",
+      `<p:sp><p:nvSpPr><p:cNvPr id="9" name="Equation 1"/><p:cNvSpPr/><p:nvPr><p:ph type="body" idx="2"/></p:nvPr></p:nvSpPr><p:spPr/>
+  <p:txBody><a:bodyPr/><a:lstStyle/>
+    <a:p>
+      <a:r><a:rPr lang="en-US"/><a:t>Roots are </a:t></a:r>
+      <a14:m><m:oMath><m:f><m:num><m:r><m:t>-b</m:t></m:r><m:r><m:t>±</m:t></m:r><m:sSup><m:e><m:r><m:t>√</m:t></m:r><m:r><m:t>b</m:t></m:r></m:e><m:sup><m:r><m:t>2</m:t></m:r></m:sup></m:sSup></m:num><m:den><m:r><m:t>2</m:t></m:r><m:r><m:t>a</m:t></m:r></m:den></m:f></m:oMath></a14:m>
+    </a:p>
+  </p:txBody>
+</p:sp>
+</p:spTree>`
+    );
+    const buf = buildZip([
+      { name: "ppt/presentation.xml", data: Buffer.from(presentationXml), method: 8 },
+      { name: "ppt/_rels/presentation.xml.rels", data: Buffer.from(presentationRels), method: 0 },
+      { name: "ppt/slides/slide1.xml", data: Buffer.from(slideWithMath), method: 8 },
+    ]);
+    const slides = await parsePptxToSlides(buf);
+    expect(slides[0].markdown).toContain("Roots are $\\frac{-b±{√b}^{2}}{2a}$");
   });
 });

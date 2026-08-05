@@ -1,6 +1,18 @@
 {
-  "currentVersion": "2.6.0",
+  "currentVersion": "2.6.1",
   "releases": [
+    {
+      "version": "2.6.1",
+      "date": "2026-08-05",
+      "title": "修正 PowerPoint 公式無法轉換的問題",
+      "type": "fixed",
+      "changes": [
+        {
+          "tag": "fixed",
+          "text": "修正 PowerPoint 簡報轉換時數學公式遺失的問題：含上下標、分數、根號與總和符號的方程式，現在會自動轉為可編輯的數學式，並在投影片中正常顯示。"
+        }
+      ]
+    },
     {
       "version": "2.6.0",
       "date": "2026-08-05",

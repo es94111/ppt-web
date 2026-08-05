@@ -60,6 +60,170 @@ function escapeMarkdown(text: string): string {
   return text.replace(/[\\`*_[\]]/g, (c) => `\\${c}`);
 }
 
+// ---- OMML（Office Math）→ LaTeX：把 PowerPoint 的方程式轉成 KaTeX 可渲染的 `$...$` ----
+
+const NARY_OPERATORS: Record<string, string> = {
+  "∑": "\\sum", "∏": "\\prod", "∫": "\\int", "⋃": "\\bigcup", "⋂": "\\bigcap",
+  "⊕": "\\bigoplus", "⊗": "\\bigotimes", "⨁": "\\bigoplus", "⨂": "\\bigotimes",
+  "∨": "\\bigvee", "∧": "\\bigwedge",
+};
+
+const ACCENT_COMMANDS: Record<string, string> = {
+  "^": "\\hat", "~": "\\tilde", "¯": "\\bar", "‾": "\\bar", "→": "\\vec", "⃗": "\\vec",
+  "˙": "\\dot", "¨": "\\ddot", "′": "\\prime",
+};
+
+/** 逃脫 LaTeX 保留字元（在 math mode 下 `&`、`%`、`_` 等有特殊意義）。 */
+function escapeLatex(text: string): string {
+  return text.replace(/\r?\n/g, " ").replace(/[\\{}%&_$#~^]/g, (c) => {
+    switch (c) {
+      case "\\": return "\\backslash ";
+      case "{": return "\\{";
+      case "}": return "\\}";
+      case "%": return "\\%";
+      case "&": return "\\&";
+      case "_": return "\\_";
+      case "$": return "\\$";
+      case "#": return "\\#";
+      case "~": return "\\textasciitilde{}";
+      case "^": return "\\textasciicircum{}";
+      default: return c;
+    }
+  });
+}
+
+/** 把 OMML 節點（m:oMath / m:oMathPara / m:t 等）轉成 LaTeX 字串；未知節點回傳空字串。 */
+function ommlToLatex(node: XmlNode): string {
+  const join = () => node.children.map(ommlToLatex).join("");
+  switch (node.tag) {
+    case "m:t":
+      return escapeLatex(textContent(node));
+    case "m:r": // run：m:rPr 屬性節點沒有 m:t，自然會被忽略
+      return join();
+    case "m:f": { // 分數
+      const num = findFirst(node, "m:num");
+      const den = findFirst(node, "m:den");
+      return `\\frac{${num ? ommlToLatex(num) : ""}}{${den ? ommlToLatex(den) : ""}}`;
+    }
+    case "m:sSup": { // 上標
+      const e = findFirst(node, "m:e");
+      const sup = findFirst(node, "m:sup");
+      return `{${e ? ommlToLatex(e) : ""}}^{${sup ? ommlToLatex(sup) : ""}}`;
+    }
+    case "m:sSub": { // 下標
+      const e = findFirst(node, "m:e");
+      const sub = findFirst(node, "m:sub");
+      return `{${e ? ommlToLatex(e) : ""}}_{${sub ? ommlToLatex(sub) : ""}}`;
+    }
+    case "m:sSubSup": { // 同時上下標
+      const e = findFirst(node, "m:e");
+      const sub = findFirst(node, "m:sub");
+      const sup = findFirst(node, "m:sup");
+      return `{${e ? ommlToLatex(e) : ""}}_{${sub ? ommlToLatex(sub) : ""}}^{${sup ? ommlToLatex(sup) : ""}}`;
+    }
+    case "m:sPre": { // 前置上下標
+      const sub = findFirst(node, "m:sub");
+      const sup = findFirst(node, "m:sup");
+      const e = findFirst(node, "m:e");
+      return `${sub ? ommlToLatex(sub) : ""}${sup ? ommlToLatex(sup) : ""}{${e ? ommlToLatex(e) : ""}}`;
+    }
+    case "m:rad": { // 根號
+      const deg = findFirst(node, "m:deg");
+      const e = findFirst(node, "m:e");
+      const base = e ? ommlToLatex(e) : "";
+      return deg ? `\\sqrt[${ommlToLatex(deg)}]{${base}}` : `\\sqrt{${base}}`;
+    }
+    case "m:d": { // 括號（delimiter）
+      const dPr = findFirst(node, "m:dPr");
+      const beg = dPr ? findFirst(dPr, "m:begChr")?.attrs["m:val"] : undefined;
+      const end = dPr ? findFirst(dPr, "m:endChr")?.attrs["m:val"] : undefined;
+      const sep = dPr ? findFirst(dPr, "m:sepChr")?.attrs["m:val"] : undefined;
+      const parts = children(node, "m:e").map(ommlToLatex);
+      const dl = (c: string | undefined) => (c === "{" ? "\\{" : c === "}" ? "\\}" : c || ".");
+      return `\\left${dl(beg)}${parts.join(sep || "")}\\right${dl(end)}`;
+    }
+    case "m:nary": { // 累積運算子（∑、∫、∏…）
+      const chr = findFirst(node, "m:chr")?.attrs["m:val"] || "∫";
+      const op = NARY_OPERATORS[chr] || escapeLatex(chr);
+      const sub = findFirst(node, "m:sub");
+      const sup = findFirst(node, "m:sup");
+      const e = findFirst(node, "m:e");
+      const subPart = sub ? `_{${ommlToLatex(sub)}}` : "";
+      const supPart = sup ? `^{${ommlToLatex(sup)}}` : "";
+      return `${op}${subPart}${supPart} ${e ? ommlToLatex(e) : ""}`;
+    }
+    case "m:acc": { // 重音符號（hat、tilde…）
+      const chr = findFirst(node, "m:chr")?.attrs["m:val"] || "^";
+      const cmd = ACCENT_COMMANDS[chr] || "\\hat";
+      const e = findFirst(node, "m:e");
+      return `${cmd}{${e ? ommlToLatex(e) : ""}}`;
+    }
+    case "m:bar": { // 上／下橫線
+      const pos = findFirst(node, "m:pos")?.attrs["m:val"] || "top";
+      const e = findFirst(node, "m:e");
+      const base = e ? ommlToLatex(e) : "";
+      return pos === "bot" ? `\\underline{${base}}` : `\\overline{${base}}`;
+    }
+    case "m:func": { // 函數（sin、log…）
+      const fName = findFirst(node, "m:fName");
+      const e = findFirst(node, "m:e");
+      const name = fName ? ommlToLatex(fName) : "";
+      return `\\operatorname{${name}}( ${e ? ommlToLatex(e) : ""} )`;
+    }
+    case "m:m": { // 矩陣
+      const rows = children(node, "m:mr").map((mr) => children(mr, "m:e").map(ommlToLatex).join(" & "));
+      if (!rows.length) return "";
+      return `\\begin{matrix}${rows.join(" \\\\ ")} \\end{matrix}`;
+    }
+    case "m:eqArr": { // 方程式陣列（多行等式）
+      const rows = children(node, "m:e").map(ommlToLatex);
+      if (!rows.length) return "";
+      return `\\begin{aligned}${rows.join(" \\\\ ")} \\end{aligned}`;
+    }
+    case "m:limLow": {
+      const e = findFirst(node, "m:e");
+      const lim = findFirst(node, "m:lim");
+      return `${e ? ommlToLatex(e) : ""}_{${lim ? ommlToLatex(lim) : ""}}`;
+    }
+    case "m:limUpp": {
+      const e = findFirst(node, "m:e");
+      const lim = findFirst(node, "m:lim");
+      return `${e ? ommlToLatex(e) : ""}^{${lim ? ommlToLatex(lim) : ""}}`;
+    }
+    case "m:groupChr": { // 上／下大括號
+      const chr = findFirst(node, "m:chr")?.attrs["m:val"] || "⏞";
+      const pos = findFirst(node, "m:pos")?.attrs["m:val"] || "top";
+      const e = findFirst(node, "m:e");
+      const base = e ? ommlToLatex(e) : "";
+      return pos === "bot" || chr === "⏟" ? `\\underbrace{${base}}` : `\\overbrace{${base}}`;
+    }
+    case "m:oMath":
+    case "m:oMathPara":
+    case "m:e":
+    case "m:num":
+    case "m:den":
+    case "m:deg":
+    case "m:sub":
+    case "m:sup":
+    case "m:lim":
+    case "m:fName":
+    case "m:borderBox":
+    case "m:box":
+    case "m:phant":
+      return join();
+    default:
+      return "";
+  }
+}
+
+/** 把段落裡的 a14:m / m:oMath 方程式節點轉為行內 KaTeX 數學 `$...$`。 */
+function renderMathElement(node: XmlNode): string {
+  const oMath = node.tag === "m:oMath" ? node : findFirst(node, "m:oMath");
+  if (!oMath) return "";
+  const latex = ommlToLatex(oMath).trim();
+  return latex ? `$${latex}$` : "";
+}
+
 function renderRun(node: XmlNode, rels: Map<string, Rel>): string {
   if (node.tag === "a:br") return "  \n";
   const tNode = findFirst(node, "a:t");
@@ -84,8 +248,8 @@ function renderParagraph(p: XmlNode, rels: Map<string, Rel>, defaultBulleted: bo
   const bulleted = defaultBulleted && !explicitNoBullet;
 
   const runText = p.children
-    .filter((c) => c.tag === "a:r" || c.tag === "a:br" || c.tag === "a:fld")
-    .map((c) => renderRun(c, rels))
+    .filter((c) => c.tag === "a:r" || c.tag === "a:br" || c.tag === "a:fld" || c.tag === "a14:m" || c.tag === "m:oMathPara" || c.tag === "m:oMath")
+    .map((c) => (c.tag === "a14:m" || c.tag === "m:oMathPara" || c.tag === "m:oMath" ? renderMathElement(c) : renderRun(c, rels)))
     .join("");
   const trimmed = runText.trim();
   if (!trimmed) return { text: "", bulleted: false };
