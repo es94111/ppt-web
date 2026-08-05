@@ -23,7 +23,7 @@ export default async function PdfExportPage({ params }: { params: Promise<{ id: 
       <div className="export-toolbar">
         <div className="container export-toolbar-inner">
           <div><h1>{deck.title} — PDF 匯出</h1><p className="muted">每張投影片會以 16:9 橫向頁面列印。</p></div>
-          <div className="export-actions"><Link className="btn secondary small" href={deck.sourceType === "MARKDOWN" ? `/decks/${id}/edit` : "/dashboard"}>返回</Link><PrintButton /></div>
+          <div className="export-actions"><Link className="btn secondary small" href={`/decks/${id}/edit`}>返回</Link><PrintButton /></div>
         </div>
       </div>
       <section className="print-deck">

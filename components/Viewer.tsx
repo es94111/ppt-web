@@ -3,26 +3,24 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Clock, Crosshair, Download, LayoutGrid, LogOut, Maximize2, Monitor, StickyNote, X } from "lucide-react";
 import type { BrandKit } from "@/lib/brand";
-import { PptxViewer } from "./PptxViewer";
 import { SlideView } from "./SlideView";
 
 type Slide = { id: string; order: number; content: unknown; notes?: string | null };
 type ViewMode = "slide" | "overview";
-export function Viewer({ deckId, title, slides, exitHref, downloadHref, shareToken, brandKit, pptxUrl }: { deckId: string; title: string; slides: Slide[]; exitHref: string; downloadHref?: string; shareToken?: string; brandKit?: BrandKit | null; pptxUrl?: string }) {
+export function Viewer({ deckId, title, slides, exitHref, downloadHref, shareToken, brandKit }: { deckId: string; title: string; slides: Slide[]; exitHref: string; downloadHref?: string; shareToken?: string; brandKit?: BrandKit | null }) {
   const router = useRouter();
   const [index, setIndex] = useState(0);
   const [laserEnabled, setLaserEnabled] = useState(false);
   const [presenterOpen, setPresenterOpen] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>("slide");
-  const [pptxIndex, setPptxIndex] = useState(0);
   const stageRef = useRef<HTMLDivElement>(null);
   const laserRef = useRef<HTMLDivElement>(null);
   const startedAt = useRef(Date.now());
   const currentSlide = slides[index];
   const nextSlide = slides[index + 1];
   const currentSlideOrder = currentSlide?.order;
-  const viewedSlideOrder = pptxUrl ? slides[pptxIndex]?.order : currentSlideOrder;
+  const viewedSlideOrder = currentSlideOrder;
   function go(next: number) { setIndex(Math.max(0, Math.min(slides.length - 1, next))); }
   function changeViewMode(mode: ViewMode) {
     setViewMode(mode);
@@ -78,13 +76,7 @@ export function Viewer({ deckId, title, slides, exitHref, downloadHref, shareTok
     const secs = (seconds % 60).toString().padStart(2, "0");
     return `${mins}:${secs}`;
   }
-  if (!slides.length && !pptxUrl) return <div className="viewer"><header className="viewer-head"><h1>{title}</h1><button className="btn secondary small" onClick={exitViewer}><LogOut size={16} />離開簡報</button></header><div className="empty">此簡報沒有投影片</div></div>;
-  if (pptxUrl) return (
-    <div className="viewer pptx-integrated-viewer">
-      <header className="viewer-head"><h1>{title}</h1><div className="viewer-head-actions"><span className="muted">PowerPoint viewer · 唯讀模式</span>{downloadHref && <a className="btn secondary small" href={downloadHref} target="_blank"><Download size={16} />PDF</a>}<button className="btn secondary small" onClick={exitViewer}><LogOut size={16} />離開簡報</button></div></header>
-      <div className="pptx-viewer-stage"><PptxViewer sourceUrl={pptxUrl} fileName={`${title}.pptx`} onActiveSlideChange={(slideIndex) => setPptxIndex(Math.max(0, slideIndex))} /></div>
-    </div>
-  );
+  if (!slides.length) return <div className="viewer"><header className="viewer-head"><h1>{title}</h1><button className="btn secondary small" onClick={exitViewer}><LogOut size={16} />離開簡報</button></header><div className="empty">此簡報沒有投影片</div></div>;
   return (
     <div className={`viewer${laserEnabled && viewMode === "slide" ? " laser-active" : ""}`} onPointerMove={moveLaser} onPointerLeave={() => { if (laserRef.current) laserRef.current.style.opacity = "0"; }}>
       <header className="viewer-head"><h1>{title}</h1><div className="viewer-head-actions"><span className="muted">唯讀模式</span>{downloadHref && <a className="btn secondary small" href={downloadHref} target="_blank"><Download size={16} />PDF</a>}<button className="btn secondary small" onClick={exitViewer}><LogOut size={16} />離開簡報</button></div></header>

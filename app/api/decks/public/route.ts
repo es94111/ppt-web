@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const sort = searchParams.get("sort") === "popular" ? "popular" : "recent";
   const decks = await db.deck.findMany({
     where: { visibility: { in: ["PUBLIC", "PASSWORD"] }, status: "READY", ...(q ? { title: { contains: q, mode: "insensitive" } } : {}) },
-    select: { id: true, title: true, description: true, sourceType: true, updatedAt: true, passwordHash: true, owner: { select: { name: true } }, _count: { select: { slides: true, viewLogs: true } } },
+    select: { id: true, title: true, description: true, updatedAt: true, passwordHash: true, owner: { select: { name: true } }, _count: { select: { slides: true, viewLogs: true } } },
     orderBy: sort === "popular" ? { viewLogs: { _count: "desc" } } : { updatedAt: "desc" },
     take: 60,
   });

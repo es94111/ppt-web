@@ -13,7 +13,6 @@ export async function POST(_: NextRequest, { params }: { params: Promise<{ id: s
   const { id, revisionId } = await params;
   const access = await getEditableDeck(id, user);
   if (access.error) return access.error;
-  if (access.deck.sourceType === "PPTX") return jsonError("PPTX 匯入的簡報無法還原 Markdown 版本", 400);
 
   const revision = await db.deckRevision.findFirst({ where: { id: revisionId, deckId: id } });
   if (!revision) return jsonError("找不到版本", 404);
@@ -31,7 +30,7 @@ export async function POST(_: NextRequest, { params }: { params: Promise<{ id: s
   await db.$transaction([
     db.slide.deleteMany({ where: { deckId: id } }),
     ...sections.map((section, i) => db.slide.create({ data: { deckId: id, order: i + 1, content: contents[i], notes: section.notes } })),
-    db.deck.update({ where: { id }, data: { updatedAt: new Date() } }),
+    db.deck.update({ where: { id }, data: { updatedAt: new Date(), sourceType: "MARKDOWN", status: "READY", sourceFile: null } }),
   ]);
 
   return NextResponse.json({ ok: true, markdown: revision.markdown, slideCount: sections.length });

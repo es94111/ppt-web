@@ -14,7 +14,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
   const access = await getEditableDeck(id, user);
   if (access.error) return access.error;
-  if (access.deck.sourceType === "PPTX") return jsonError("PPTX 匯入的簡報為唯讀，無法以 Markdown 編輯", 400);
 
   const parsed = deckMarkdownSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("內容格式不正確", 400, parsed.error.flatten());
@@ -35,7 +34,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   await db.$transaction([
     db.slide.deleteMany({ where: { deckId: id } }),
     ...sections.map((section, i) => db.slide.create({ data: { deckId: id, order: i + 1, content: contents[i], notes: section.notes } })),
-    db.deck.update({ where: { id }, data: { updatedAt: new Date() } }),
+    db.deck.update({ where: { id }, data: { updatedAt: new Date(), sourceType: "MARKDOWN", status: "READY", sourceFile: null } }),
   ]);
 
   return NextResponse.json({ ok: true, slideCount: contents.length });

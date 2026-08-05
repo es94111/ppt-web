@@ -24,7 +24,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
   const [decks, categories, tags] = await Promise.all([
     db.deck.findMany({
     where,
-    select: { id: true, title: true, description: true, sourceType: true, passwordHash: true, category: true, owner: { select: { id: true, name: true } }, tags: { include: { tag: true } }, favorites: { where: { userId: session?.user.id ?? "__anonymous__" }, select: { id: true } }, _count: { select: { slides: true, viewLogs: true, favorites: true } }, slides: { orderBy: { order: "asc" }, take: 1, select: { content: true } } },
+    select: { id: true, title: true, description: true, passwordHash: true, category: true, owner: { select: { id: true, name: true } }, tags: { include: { tag: true } }, favorites: { where: { userId: session?.user.id ?? "__anonymous__" }, select: { id: true } }, _count: { select: { slides: true, viewLogs: true, favorites: true } }, slides: { orderBy: { order: "asc" }, take: 1, select: { content: true } } },
     orderBy: sort === "popular" ? { viewLogs: { _count: "desc" } } : { updatedAt: "desc" },
     take: 60,
     }),
@@ -60,7 +60,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
               <article className="card deck-card" key={d.id}>
                 <Link href={`/d/${d.id}`}><div className="deck-cover">{d.slides?.[0] ? <SlideView content={d.slides[0].content} /> : <Presentation size={48} />}</div></Link>
                 <div className="deck-body">
-                  <div className="deck-meta"><span className="badge">{d.passwordHash ? "密碼保護" : d.sourceType === "PPTX" ? "PPTX" : "Markdown"}</span><span>{d._count.slides} 頁 · {d._count.viewLogs} 次瀏覽 · {d._count.favorites} 收藏</span></div>
+                  <div className="deck-meta"><span className="badge">{d.passwordHash ? "密碼保護" : "Markdown"}</span><span>{d._count.slides} 頁 · {d._count.viewLogs} 次瀏覽 · {d._count.favorites} 收藏</span></div>
                   <h3>{d.title}</h3>
                   <p className="muted">{d.description || "尚無描述"}</p>
                   <p className="muted deck-author">由 <Link href={`/authors/${d.owner.id}`}>{d.owner.name || "未具名"}</Link>{d.category ? ` · ${d.category}` : ""}</p>

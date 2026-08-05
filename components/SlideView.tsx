@@ -7,7 +7,7 @@ import type { SlideContent } from "@/lib/schemas";
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-// 渲染單張投影片：Markdown（消毒後 HTML）或 圖片（PPTX 轉出）。
+// 渲染單張投影片：Markdown（消毒後 HTML）或 圖片（舊 PPTX 匯入遺留的頁面，相容顯示）。
 // animate=true 時套用進場動畫（播放器用；編輯預覽維持靜態）。
 export const SlideView = memo(function SlideView({ content, animate = false, brandKit = null }: { content: unknown; animate?: boolean; brandKit?: BrandKit | null }) {
   const c = content as SlideContent | undefined;

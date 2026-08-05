@@ -21,7 +21,7 @@ export default async function DeckLogsPage({ params, searchParams }: { params: P
   const session = await auth();
   if (!session?.user) redirect("/login");
   const { id } = await params;
-  const deck = await db.deck.findUnique({ where: { id }, select: { id: true, title: true, ownerId: true, sourceType: true, _count: { select: { slides: true } } } });
+  const deck = await db.deck.findUnique({ where: { id }, select: { id: true, title: true, ownerId: true, _count: { select: { slides: true } } } });
   if (!deck) notFound();
   if (session.user.role !== "ADMIN" && deck.ownerId !== session.user.id) redirect("/dashboard");
 
@@ -70,7 +70,7 @@ export default async function DeckLogsPage({ params, searchParams }: { params: P
   for (const row of recentReferers) sourceCounts.set(sourceLabel(row.referer), (sourceCounts.get(sourceLabel(row.referer)) ?? 0) + 1);
   const topSources = [...sourceCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
 
-  const backHref = deck.sourceType === "MARKDOWN" ? `/decks/${id}/edit` : "/dashboard";
+  const backHref = `/decks/${id}/edit`;
   return (
     <main>
       <section className="container section">

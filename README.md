@@ -1,6 +1,6 @@
 # SlideForge
 
-![version](https://img.shields.io/badge/version-2.4.1-blue)
+![version](https://img.shields.io/badge/version-2.5.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-blue)
 
@@ -42,7 +42,7 @@
 - **版本歷史 / 還原**：自動儲存前會定期保留 Markdown 快照，編輯器可查看最近版本並一鍵還原。
 - **Markdown 增強**：支援 Mermaid 圖表、KaTeX 數學式與程式碼高亮，適合技術提案、課程與研究簡報。
 - **精美主題 + 動畫**：用一組安全的版面標籤（`s-*`）做出深色/淺色主題、漸層標題、數據卡、多欄等旗艦級版面；播放時投影片淡入、內容逐項浮現（尊重 reduced-motion）。撰寫說明與範例見 [`docs/examples/`](docs/examples/)。
-- **上傳匯入**：上傳 `.md` Markdown 檔匯入成可編輯簡報；上傳 `.pptx` 會保存原始檔，使用 PowerPoint viewer 在瀏覽器中檢視與編輯，並以 LibreOffice 產生 PDF 匯出與相容用的圖片縮圖。
+- **上傳匯入**：上傳 `.md` Markdown 檔即可匯入成可編輯簡報。
 - **PDF 匯出**：擁有者/Admin 可開啟列印最佳化的 PDF 匯出頁，將每張投影片以 16:9 橫向頁面另存為 PDF。
 - **公開藝廊（首頁）**：首頁 `/` 即公開簡報藝廊，可瀏覽全站公開簡報，支援關鍵字搜尋與最新／最熱門排序（舊路徑 `/explore` 自動轉址至首頁）。
 - **標籤、分類、作者頁與收藏**：公開藝廊可依標籤/分類篩選，作者頁彙整個人公開簡報，登入者可收藏公開簡報。

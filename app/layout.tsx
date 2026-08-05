@@ -6,7 +6,6 @@ import { MobileNav } from "@/components/MobileNav";
 import { Presentation } from "lucide-react";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
-import "pptx-react-viewer/styles";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });

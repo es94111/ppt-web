@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { BRAND_FONT_VALUES } from "./brand";
 
-// 投影片內容：Markdown 原生（可編輯）或 圖片（PPTX 轉出，唯讀）
+// 投影片內容：Markdown 原生（可編輯）或 圖片（舊 PPTX 匯入資料相容）
 export const slideContentSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("markdown"), markdown: z.string().max(20000) }).strict(),
   z.object({ kind: z.literal("image"), src: z.string().min(1).max(2048), alt: z.string().max(300).optional() }).strict(),
