@@ -129,7 +129,7 @@ function renderTable(tbl: XmlNode, rels: Map<string, Rel>): string {
   );
   if (!rows.length) return "";
   const colCount = Math.max(...rows.map((r) => r.length));
-  const escCell = (s: string) => s.replace(/\|/g, "\\|").replace(/\n/g, " ");
+  const escCell = (s: string) => s.replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\n/g, " ");
   const padded = rows.map((r) => [...r, ...Array(Math.max(0, colCount - r.length)).fill(" ")]);
   const lines = [
     `| ${padded[0].map(escCell).join(" | ")} |`,
