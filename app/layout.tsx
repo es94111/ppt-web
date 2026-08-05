@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { auth, signOut } from "@/auth";
+import { MobileNav } from "@/components/MobileNav";
 import { Presentation } from "lucide-react";
 import "highlight.js/styles/github-dark.css";
 import "katex/dist/katex.min.css";
@@ -26,6 +27,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <Link className="hide-mobile" href="/settings">設定</Link>
           <span className={`badge ${session.user.role}`}>{session.user.role}</span>
           <form action={async()=>{"use server";await signOut({redirectTo:"/"})}}><button className="btn secondary small">登出</button></form>
+          <MobileNav isAdmin={session.user.role === "ADMIN"} />
         </> : <><Link href="/login">登入</Link><Link className="btn small" href="/register">免費開始</Link></>}
       </nav>
     </div></header>{children}

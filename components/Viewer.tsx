@@ -95,16 +95,16 @@ export function Viewer({ deckId, title, slides, exitHref, downloadHref, shareTok
         </div>}
       </div>
       <footer className="viewer-controls">
-        <button className="btn secondary small" disabled={viewMode === "overview" || index === 0} onClick={() => go(index - 1)}><ChevronLeft size={18} /></button>
+        <button className="btn secondary small" aria-label="上一頁" title="上一頁（←）" disabled={viewMode === "overview" || index === 0} onClick={() => go(index - 1)}><ChevronLeft size={18} /></button>
         <strong>{index + 1} / {slides.length}</strong>
-        <button className="btn secondary small" disabled={viewMode === "overview" || index === slides.length - 1} onClick={() => go(index + 1)}><ChevronRight size={18} /></button>
+        <button className="btn secondary small" aria-label="下一頁" title="下一頁（→ / 空白鍵）" disabled={viewMode === "overview" || index === slides.length - 1} onClick={() => go(index + 1)}><ChevronRight size={18} /></button>
         <div className="view-mode-switch" aria-label="檢視方式">
           <button className={`btn secondary small${viewMode === "slide" ? " active" : ""}`} aria-pressed={viewMode === "slide"} title="單頁檢視" onClick={() => changeViewMode("slide")}><Monitor size={17} />單頁</button>
           <button className={`btn secondary small${viewMode === "overview" ? " active" : ""}`} aria-pressed={viewMode === "overview"} title="投影片總覽（G）" onClick={() => changeViewMode("overview")}><LayoutGrid size={17} />總覽</button>
         </div>
         <button className={`btn secondary small${laserEnabled ? " active laser" : ""}`} disabled={viewMode === "overview"} aria-pressed={laserEnabled} title="雷射筆（L）" onClick={() => setLaserEnabled((enabled) => !enabled)}><Crosshair size={17} />雷射筆</button>
         <button className={`btn secondary small${presenterOpen ? " active" : ""}`} aria-pressed={presenterOpen} title="講者模式（P）" onClick={() => setPresenterOpen((open) => !open)}><StickyNote size={17} />講者</button>
-        <button className="btn secondary small" onClick={() => document.documentElement.requestFullscreen?.()}><Maximize2 size={17} /></button>
+        <button className="btn secondary small" aria-label="全螢幕" title="全螢幕（Esc 離開）" onClick={() => document.documentElement.requestFullscreen?.()}><Maximize2 size={17} /></button>
       </footer>
       {presenterOpen && <div className="presenter-backdrop">
         <section className="presenter-console" aria-label="講者模式">

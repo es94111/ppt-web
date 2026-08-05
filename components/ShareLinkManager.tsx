@@ -74,7 +74,7 @@ export function ShareLinkManager({ deckId }: { deckId: string }) {
             <span><b>{link.analytics?.completionRate ?? 0}%</b>完成</span>
             <span><b>{link.analytics?.dropOffSlide ? `第 ${link.analytics.dropOffSlide} 頁後` : "無"}</b>流失</span>
           </div>
-          <div className="manager-actions"><a className="btn secondary small" href={`/s/${link.token}`} target="_blank"><ExternalLink size={14} /></a><button className="btn secondary small" onClick={() => navigator.clipboard.writeText(shareUrl(link.token))}><Copy size={14} /></button><button className="btn secondary small" disabled={!active} onClick={() => revoke(link.id)}><RotateCcw size={14} />撤銷</button></div>
+          <div className="manager-actions"><a className="btn secondary small" href={`/s/${link.token}`} target="_blank" aria-label="開啟分享連結" title="開啟分享連結"><ExternalLink size={14} /></a><button className="btn secondary small" aria-label="複製分享連結" title="複製分享連結" onClick={() => navigator.clipboard.writeText(shareUrl(link.token))}><Copy size={14} /></button><button className="btn secondary small" disabled={!active} onClick={() => revoke(link.id)}><RotateCcw size={14} />撤銷</button></div>
         </article>;
       }) : <div className="empty compact">尚未建立分享連結</div>}
     </div>
