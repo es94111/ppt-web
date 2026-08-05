@@ -1,6 +1,15 @@
 {
-  "currentVersion": "2.4.0",
+  "currentVersion": "2.4.1",
   "releases": [
+    {
+      "version": "2.4.1",
+      "date": "2026-08-05",
+      "title": "修補 Windows 路徑穿越安全漏洞",
+      "type": "fixed",
+      "changes": [
+        { "tag": "fixed", "text": "系統升級伺服器元件並修補安全漏洞：在 Windows 環境下，攻擊者可能透過特殊網址讀取系統內其他檔案，更新後此風險已消除。" }
+      ]
+    },
     {
       "version": "2.4.0",
       "date": "2026-08-05",
