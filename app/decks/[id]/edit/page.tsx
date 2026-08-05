@@ -21,7 +21,7 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
   if (deck.sourceType === "PPTX") {
     // 舊資料可能只有轉出的圖片、沒有原始檔；這類簡報仍維持既有唯讀播放器。
     if (!deck.sourceFile) redirect(`/d/${id}`);
-    return <main><PptxEditor deck={{ id: deck.id, title: deck.title, sourceUrl: `/api/decks/${id}/pptx`, fileName: `${deck.title}.pptx` }} /></main>;
+    return <main><PptxEditor deck={{ id: deck.id, title: deck.title, sourceUrl: `/api/decks/${id}/pptx`, fileName: `${deck.title}.pptx`, canManage }} /></main>;
   }
   const initialMarkdown = joinSlidesToMarkdown(deck.slides);
   return (
