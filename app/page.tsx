@@ -39,16 +39,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
           <Link className="btn" href={session ? "/dashboard" : "/register"}>{session ? "進入工作區" : "建立第一份簡報"}</Link>
         </div>
         <form className="filter-bar" method="get">
-          <input className="input" type="search" name="q" defaultValue={q} placeholder="搜尋標題…" maxLength={100} />
-          <select className="input" name="sort" defaultValue={sort}>
+          <input className="input" type="search" name="q" defaultValue={q} placeholder="搜尋標題…" maxLength={100} aria-label="搜尋簡報標題" />
+          <select className="input" name="sort" defaultValue={sort} aria-label="排序方式">
             <option value="recent">最新</option>
             <option value="popular">最熱門</option>
           </select>
-          <select className="input" name="category" defaultValue={category}>
+          <select className="input" name="category" defaultValue={category} aria-label="分類">
             <option value="">所有分類</option>
             {categories.map((item) => item.category && <option value={item.category} key={item.category}>{item.category}</option>)}
           </select>
-          <select className="input" name="tag" defaultValue={tag}>
+          <select className="input" name="tag" defaultValue={tag} aria-label="標籤">
             <option value="">所有標籤</option>
             {tags.map((item) => <option value={item.slug} key={item.id}>#{item.name}</option>)}
           </select>

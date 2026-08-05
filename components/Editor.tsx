@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3, FileDown, History, LayoutTemplate, MessageSquare, Palette, Play, RotateCcw, Settings2, Share2, Users, WandSparkles, X } from "lucide-react";
+import { BarChart3, Eye, FileDown, History, LayoutTemplate, MessageSquare, Palette, Pencil, Play, RotateCcw, Settings2, Share2, Users, WandSparkles, X } from "lucide-react";
 import { normalizeBrandKit, type BrandKit } from "@/lib/brand";
 import { SlideView } from "./SlideView";
 import { AIAssistant } from "./AIAssistant";
@@ -25,6 +25,7 @@ export function Editor({ deck }: { deck: Deck }) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [showRevisions, setShowRevisions] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [mobileMode, setMobileMode] = useState<"edit" | "preview">("edit");
   const [showCollaborators, setShowCollaborators] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [revisions, setRevisions] = useState<Revision[]>([]);
@@ -183,7 +184,7 @@ export function Editor({ deck }: { deck: Deck }) {
       <header className="md-toolbar">
         <strong className="md-title">{deck.title}</strong>
         <span className="md-hint"><code>---</code> 分頁 · <code>???</code> 講者備註</span>
-        <span className="save-state">{state}</span>
+        <span className={`save-state${state.includes("失敗") ? " error" : ""}`}>{state}</span>
         <button className="btn secondary small" onClick={() => setShowAI(true)}><WandSparkles size={15} />AI</button>
         <button className="btn secondary small" onClick={() => setShowTemplates(true)}><LayoutTemplate size={15} />範本</button>
         {deck.canManage && <button className="btn secondary small" onClick={() => setShowBrand(true)}><Palette size={15} />品牌</button>}
@@ -194,10 +195,11 @@ export function Editor({ deck }: { deck: Deck }) {
         <button className="btn secondary small" onClick={() => setShowSettings(true)}><Settings2 size={15} />設定</button>
         <a className="btn secondary small" href={`/decks/${deck.id}/logs`}><BarChart3 size={15} />分析</a>
         <a className="btn secondary small" href={`/decks/${deck.id}/export/pdf`} target="_blank"><FileDown size={15} />PDF</a>
+        <button className="btn secondary small mobile-preview-toggle" onClick={() => setMobileMode((m) => m === "edit" ? "preview" : "edit")}>{mobileMode === "edit" ? <Eye size={15} /> : <Pencil size={15} />}{mobileMode === "edit" ? "預覽" : "編輯"}</button>
         <a className="btn small" href={`/d/${deck.id}`}><Play size={15} />播放</a>
       </header>
 
-      <div className="md-body">
+      <div className={`md-body${mobileMode === "preview" ? " mobile-preview" : ""}`}>
         <section className="md-source">
           <textarea
             ref={textareaRef}
