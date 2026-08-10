@@ -20,7 +20,7 @@
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "bcryptjs": "^3.0.3",
-    "dompurify": "^3.4.12",
+    "dompurify": "^3.4.13",
     "highlight.js": "^11.11.1",
     "katex": "^0.18.1",
     "lucide-react": "^1.28.0",
