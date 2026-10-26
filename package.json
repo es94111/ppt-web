@@ -41,7 +41,7 @@
     "dotenv": "^17.4.2",
     "prisma": "^7.10.0",
     "typescript": "7.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "^5.0.5"
   },
   "overrides": {
     "@auth/core": "0.41.3",
